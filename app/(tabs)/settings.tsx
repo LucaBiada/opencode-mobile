@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react"
+﻿import { useCallback, useEffect, useMemo, useState } from "react"
 import {
   View,
   Text,
@@ -182,7 +182,7 @@ export default function SettingsScreen() {
               value={settings.requireBiometric}
               onValueChange={(value) => updateSettings({ requireBiometric: value })}
               disabled={!hasBiometrics}
-              trackColor={{ false: "#767577", true: "#22c55e" }}
+              trackColor={{ false: colors.border, true: colors.accent }}
             />
           }
         />
@@ -196,7 +196,7 @@ export default function SettingsScreen() {
               value={settings.requireBiometricForMessages}
               onValueChange={(value) => updateSettings({ requireBiometricForMessages: value })}
               disabled={!hasBiometrics || !settings.requireBiometric}
-              trackColor={{ false: "#767577", true: "#22c55e" }}
+              trackColor={{ false: colors.border, true: colors.accent }}
             />
           }
         />
@@ -226,7 +226,7 @@ export default function SettingsScreen() {
                 <Switch
                   value={notifications[category]}
                   onValueChange={(value) => handleToggle(category, value)}
-                  trackColor={{ false: "#767577", true: "#22c55e" }}
+                  trackColor={{ false: colors.border, true: colors.accent }}
                 />
               }
             />
@@ -252,7 +252,7 @@ export default function SettingsScreen() {
               value={crashReporting}
               onValueChange={handleCrashReportingToggle}
               disabled={telemetryUpdating}
-              trackColor={{ false: "#767577", true: "#22c55e" }}
+              trackColor={{ false: colors.border, true: colors.accent }}
             />
           }
         />

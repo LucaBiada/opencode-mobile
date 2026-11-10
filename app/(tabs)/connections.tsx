@@ -192,7 +192,7 @@ export default function ConnectionsScreen() {
 
       {/* FAB to add connection */}
       <TouchableOpacity style={[styles.fab, isDark && styles.fabDark]} onPress={() => router.push("/connection/add")}>
-        <Ionicons name="add" size={28} color={isDark ? colors.text : "#ffffff"} />
+        <Ionicons name="add" size={28} color="#fff" />
       </TouchableOpacity>
     </View>
   )
@@ -337,7 +337,7 @@ function createStyles(colors: Theme) {
     elevation: 5,
   },
   fabDark: {
-    backgroundColor: colors.panel,
+    backgroundColor: colors.accent,
   },
   settingsSection: {
     padding: 16,

@@ -102,7 +102,7 @@ an external disk. This machine has its own working setup, documented in
 | `npx expo config --type public` | Resolves. |
 | `npx expo-doctor` | 14/18 checks pass; 4 findings below. |
 | Android compile | `.\gradlew.bat assembleDebug` → BUILD SUCCESSFUL (2m44s warm, 6m36s cold), 180.6 MB debug APK. The first attempt failed on a missing `android/app/debug.keystore` (gitignored by design); generated one with `keytool`. |
-| Emulator + install | AVD `devmote` (API 35, x86_64, WHPX) boots in ~20 s; the APK installs and launches. Debug JS needs Metro plus `adb reverse tcp:8081 tcp:8081`. The edited connection screen renders correctly (waitlist card gone, layout intact). |
+| Emulator + install | AVD `devmote` (API 35, x86_64, WHPX) boots in ~31 s; the APK installs and launches. Debug JS needs Metro plus `adb reverse tcp:8081 tcp:8081`. The edited connection screen renders correctly (waitlist card gone, layout intact). |
 
 **Fixed on the fork:** `npm test` ran 0 tests on Windows. The script quoted its glob patterns, which
 POSIX shells strip but cmd and PowerShell pass through literally, so `node --test` matched nothing.

@@ -24,6 +24,10 @@ Everything lives on `E:` so the system disk stays clean.
 Acceleration is `WHPX` (Windows Hypervisor Platform), reported usable by
 `emulator -accel-check`. No HAXM needed.
 
+Boot takes ~31 s headless. The host has an RTX 5090, so `-gpu host` renders much faster than the
+`swiftshader_indirect` fallback used for the first verification pass; keep swiftshader only when
+testing graphics-related bugs, since it is the more conservative renderer.
+
 ## Environment variables (user scope, already set)
 
 ```

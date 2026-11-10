@@ -1,7 +1,8 @@
 import { useMemo, type ReactNode } from "react"
-import { View, Text, useColorScheme, Platform, type StyleProp, type ViewStyle, type TextStyle } from "react-native"
+import { View, Text, Platform, useColorScheme, type StyleProp, type ViewStyle, type TextStyle } from "react-native"
 import { useMarkdown, Renderer } from "react-native-marked"
 import { CodeBlock } from "./CodeBlock"
+import { useTheme } from "../../theme"
 
 // react-native-marked's base Renderer hardcodes `selectable` on every plain
 // text node it produces (text/strong/em/del/heading/codespan). On Android,
@@ -58,120 +59,60 @@ class CustomRenderer extends Renderer {
 
 const mono = Platform.OS === "ios" ? "Menlo" : "monospace"
 
-const lightTheme = {
-  text: { color: "#0a0a0a", fontSize: 15, lineHeight: 22 },
-  paragraph: { marginTop: 0, marginBottom: 8 },
-  h1: { fontSize: 22, fontWeight: "700" as const, color: "#0a0a0a", marginBottom: 8, marginTop: 12 },
-  h2: { fontSize: 19, fontWeight: "600" as const, color: "#0a0a0a", marginBottom: 6, marginTop: 10 },
-  h3: { fontSize: 16, fontWeight: "600" as const, color: "#0a0a0a", marginBottom: 4, marginTop: 8 },
-  link: { color: "#8b5cf6" },
-  blockquote: {
-    backgroundColor: "transparent",
-    borderLeftWidth: 3,
-    borderLeftColor: "#d1d5db",
-    paddingLeft: 12,
-    paddingVertical: 2,
-    marginVertical: 4,
-  },
-  code: {
-    backgroundColor: "#e8e5f0",
-    color: "#6d28d9",
-    fontFamily: mono,
-    fontSize: 13,
-    paddingHorizontal: 5,
-    paddingVertical: 2,
-    borderRadius: 4,
-  },
-  codespan: {
-    backgroundColor: "#e8e5f0",
-    color: "#6d28d9",
-    fontFamily: mono,
-    fontSize: 13,
-    paddingHorizontal: 4,
-    paddingVertical: 1,
-    borderRadius: 3,
-  },
-  list: { marginBottom: 4 },
-  li: { marginBottom: 2 },
-  hr: { backgroundColor: "#e5e5e5", height: 1, marginVertical: 12 },
-  strong: { fontWeight: "700" as const },
-  em: { fontStyle: "italic" as const },
-  strikethrough: { textDecorationLine: "line-through" as const },
-  image: { borderRadius: 8 },
-}
-
-const darkTheme = {
-  ...lightTheme,
-  text: { ...lightTheme.text, color: "#e5e5e5" },
-  h1: { ...lightTheme.h1, color: "#ffffff" },
-  h2: { ...lightTheme.h2, color: "#ffffff" },
-  h3: { ...lightTheme.h3, color: "#ffffff" },
-  link: { color: "#a78bfa" },
-  blockquote: {
-    ...lightTheme.blockquote,
-    borderLeftColor: "#4a4a5a",
-  },
-  code: {
-    ...lightTheme.code,
-    backgroundColor: "#2a2040",
-    color: "#c4b5fd",
-  },
-  codespan: {
-    ...lightTheme.codespan,
-    backgroundColor: "#2a2040",
-    color: "#c4b5fd",
-  },
-  hr: { ...lightTheme.hr, backgroundColor: "#2a2a2a" },
-}
-
 interface Props {
   children: string
-  // "phone" is the dark, prose-first phone-mode look: no purple, coral links,
-  // blue-grey code pills, roomier line height.
-  variant?: "default" | "phone"
+  // Inside a rounded user bubble the paragraph gap is removed so the text sits
+  // tight against the padding.
+  tight?: boolean
 }
 
-const phoneTheme = {
-  ...darkTheme,
-  text: { color: "#F2F2F3", fontSize: 19, lineHeight: 26 },
-  paragraph: { marginTop: 0, marginBottom: 13 },
-  h1: { ...darkTheme.h1, color: "#ffffff", fontSize: 26, marginTop: 20, marginBottom: 12 },
-  h2: { ...darkTheme.h2, color: "#ffffff", fontSize: 22, marginTop: 18, marginBottom: 10 },
-  h3: { ...darkTheme.h3, color: "#ffffff", fontSize: 19, marginTop: 16, marginBottom: 8 },
-  link: { color: "#a78bfa", textDecorationLine: "underline" as const },
-  blockquote: {
-    ...darkTheme.blockquote,
-    borderLeftColor: "#2e2e33",
-    paddingLeft: 14,
-    marginVertical: 8,
-  },
-  code: {
-    ...darkTheme.code,
-    backgroundColor: "#18212c",
-    color: "#a8c7e8",
-    fontFamily: mono,
-    fontSize: 15,
-    paddingHorizontal: 6,
-    paddingVertical: 3,
-    borderRadius: 6,
-  },
-  codespan: {
-    ...darkTheme.codespan,
-    backgroundColor: "#18212c",
-    color: "#a8c7e8",
-    fontFamily: mono,
-    fontSize: 15,
-    paddingHorizontal: 6,
-    paddingVertical: 3,
-    borderRadius: 6,
-  },
-  li: { marginBottom: 8 },
-  hr: { ...darkTheme.hr, backgroundColor: "#232326" },
-}
+export function Markdown({ children, tight = false }: Props) {
+  const colors = useTheme()
 
-export function Markdown({ children, variant = "default" }: Props) {
-  const isDark = useColorScheme() === "dark"
-  const theme = variant === "phone" ? phoneTheme : isDark ? darkTheme : lightTheme
+  const theme = useMemo(
+    () => ({
+      text: { color: colors.text, fontSize: 19, lineHeight: 26 },
+      paragraph: { marginTop: 0, marginBottom: tight ? 0 : 13 },
+      h1: { fontSize: 26, fontWeight: "700" as const, color: colors.text, marginBottom: 12, marginTop: 20 },
+      h2: { fontSize: 22, fontWeight: "600" as const, color: colors.text, marginBottom: 10, marginTop: 18 },
+      h3: { fontSize: 19, fontWeight: "600" as const, color: colors.text, marginBottom: 8, marginTop: 16 },
+      link: { color: colors.accent, textDecorationLine: "underline" as const },
+      blockquote: {
+        backgroundColor: "transparent",
+        borderLeftWidth: 3,
+        borderLeftColor: colors.border,
+        paddingLeft: 14,
+        paddingVertical: 2,
+        marginVertical: 8,
+      },
+      code: {
+        backgroundColor: colors.codeBg,
+        color: colors.codeText,
+        fontFamily: mono,
+        fontSize: 15,
+        paddingHorizontal: 6,
+        paddingVertical: 3,
+        borderRadius: 6,
+      },
+      codespan: {
+        backgroundColor: colors.codeBg,
+        color: colors.codeText,
+        fontFamily: mono,
+        fontSize: 15,
+        paddingHorizontal: 6,
+        paddingVertical: 3,
+        borderRadius: 6,
+      },
+      list: { marginBottom: 4 },
+      li: { marginBottom: 8 },
+      hr: { backgroundColor: colors.border, height: 1, marginVertical: 12 },
+      strong: { fontWeight: "700" as const },
+      em: { fontStyle: "italic" as const },
+      strikethrough: { textDecorationLine: "line-through" as const },
+      image: { borderRadius: 8 },
+    }),
+    [colors, tight],
+  )
 
   // A module-scope singleton renderer would share one CustomRenderer (and
   // its underlying github-slugger) across every Markdown instance and every
@@ -196,7 +137,7 @@ export function Markdown({ children, variant = "default" }: Props) {
   const elements = useMarkdown(children ?? "", {
     renderer,
     styles: theme,
-    colorScheme: isDark ? "dark" : "light",
+    colorScheme: useColorScheme() === "light" ? "light" : "dark",
   })
 
   if (!children?.trim()) return null

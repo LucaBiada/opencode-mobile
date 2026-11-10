@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react"
+﻿import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import {
   ActivityIndicator,
   Alert,
@@ -16,7 +16,7 @@ import { Ionicons } from "@expo/vector-icons"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
 
 import { PhoneMessage } from "../../src/components/phone/PhoneMessage"
-import { phoneColors as colors } from "../../src/components/phone/theme"
+import { useTheme, type Theme } from "../../src/theme"
 import { phoneEngine } from "../../src/engines/phone/engine"
 import type { Event, Message, Part } from "../../src/lib/sdk"
 
@@ -28,6 +28,8 @@ function shortModel(modelID: string): string {
 export default function PhoneChatScreen() {
   const { id } = useLocalSearchParams<{ id: string }>()
   const insets = useSafeAreaInsets()
+  const colors = useTheme()
+  const styles = useMemo(() => createStyles(colors), [colors])
 
   const [messages, setMessages] = useState<Message[]>([])
   const [parts, setParts] = useState<Record<string, Part[]>>({})
@@ -277,7 +279,8 @@ export default function PhoneChatScreen() {
   )
 }
 
-const styles = StyleSheet.create({
+function createStyles(colors: Theme) {
+  return StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.bg },
   headerTitle: { alignItems: "center", maxWidth: 220 },
   title: { color: colors.text, fontSize: 16, fontWeight: "600" },
@@ -354,4 +357,5 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   sendStop: { backgroundColor: colors.accentPressed },
-})
+  })
+}

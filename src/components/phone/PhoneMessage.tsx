@@ -111,18 +111,18 @@ export const PhoneMessage = memo(function PhoneMessage({ message, parts }: { mes
 })
 
 const styles = StyleSheet.create({
-  assistant: { paddingHorizontal: 22, paddingTop: 26 },
-  userRow: { paddingHorizontal: 16, paddingTop: 26 },
+  assistant: { paddingHorizontal: 16, paddingTop: 24 },
+  userRow: { paddingHorizontal: 16, paddingTop: 24 },
   userBubble: {
     backgroundColor: colors.panel,
-    borderRadius: 16,
+    borderRadius: 14,
     paddingHorizontal: 16,
     paddingVertical: 14,
   },
-  reasoning: { marginBottom: 12 },
+  reasoning: { marginBottom: 10 },
   reasoningHeader: { flexDirection: "row", alignItems: "center", gap: 6 },
   reasoningLabel: { color: colors.muted, fontSize: 14, fontWeight: "600" },
-  reasoningText: { color: colors.muted, fontSize: 14, lineHeight: 22, marginTop: 8 },
+  reasoningText: { color: colors.muted, fontSize: 14, lineHeight: 21, marginTop: 8 },
   tool: {
     borderWidth: 1,
     borderColor: colors.border,
@@ -144,6 +144,6 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   error: { color: colors.danger, fontSize: 15, marginTop: 10 },
-  actions: { flexDirection: "row", gap: 26, marginTop: 16 },
+  actions: { flexDirection: "row", gap: 26, marginTop: 14 },
   action: { opacity: 0.95 },
 })

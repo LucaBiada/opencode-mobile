@@ -1,17 +1,18 @@
-// Phone-mode palette, matched to the reference screenshot: near-black canvas,
-// bright neutral text, warm coral accent, blue-grey code, thin neutral borders.
+// Phone-mode palette, measured from the reference screenshot (919x2048 ->
+// 0.4476 dp/px). Grey ramp and canvas are intentionally lighter than the
+// default dark theme; the accent is purple instead of the reference's coral.
 export const phoneColors = {
-  bg: "#0b0b0c",
-  panel: "#151517",
-  panelAlt: "#1c1c1f",
-  border: "#2a2a2d",
-  text: "#f2f2f3",
-  textDim: "#d6d6da",
-  muted: "#9a9aa0",
-  accent: "#8b5cf6",
-  accentPressed: "#7c3aed",
-  success: "#4ade80",
-  danger: "#f87171",
-  codeBg: "#18212c",
-  codeText: "#a8c7e8",
+  bg: "#141415",
+  panel: "#202020",
+  panelAlt: "#303030",
+  border: "#3A3A3A",
+  text: "#F2F2F3",
+  textDim: "#D6D6DA",
+  muted: "#B0B0B4",
+  accent: "#8B5CF6",
+  accentPressed: "#7C3AED",
+  success: "#4ADE80",
+  danger: "#F87171",
+  codeBg: "#18212C",
+  codeText: "#A8C7E8",
 }

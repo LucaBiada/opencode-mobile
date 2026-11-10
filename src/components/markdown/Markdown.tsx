@@ -133,7 +133,7 @@ interface Props {
 
 const phoneTheme = {
   ...darkTheme,
-  text: { color: "#f2f2f3", fontSize: 17, lineHeight: 27 },
+  text: { color: "#F2F2F3", fontSize: 19, lineHeight: 26 },
   paragraph: { marginTop: 0, marginBottom: 13 },
   h1: { ...darkTheme.h1, color: "#ffffff", fontSize: 26, marginTop: 20, marginBottom: 12 },
   h2: { ...darkTheme.h2, color: "#ffffff", fontSize: 22, marginTop: 18, marginBottom: 10 },

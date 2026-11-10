@@ -13,6 +13,7 @@ import {
 } from "react-native"
 import { router, Stack, useLocalSearchParams } from "expo-router"
 import { Ionicons } from "@expo/vector-icons"
+import { useSafeAreaInsets } from "react-native-safe-area-context"
 
 import { PhoneMessage } from "../../src/components/phone/PhoneMessage"
 import { phoneColors as colors } from "../../src/components/phone/theme"
@@ -26,6 +27,7 @@ function shortModel(modelID: string): string {
 
 export default function PhoneChatScreen() {
   const { id } = useLocalSearchParams<{ id: string }>()
+  const insets = useSafeAreaInsets()
 
   const [messages, setMessages] = useState<Message[]>([])
   const [parts, setParts] = useState<Record<string, Part[]>>({})
@@ -214,7 +216,7 @@ export default function PhoneChatScreen() {
         <View style={{ height: 12 }} />
       </ScrollView>
 
-      <View style={styles.bottom}>
+      <View style={[styles.bottom, { paddingBottom: Math.max(insets.bottom, 8) + 16 }]}>
         {approval ? (
           <View style={styles.approval}>
             <Text style={styles.approvalTitle}>Allow {approval.tool}?</Text>
@@ -278,9 +280,9 @@ export default function PhoneChatScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.bg },
   headerTitle: { alignItems: "center", maxWidth: 220 },
-  title: { color: colors.text, fontSize: 17, fontWeight: "600" },
-  subtitle: { color: colors.muted, fontSize: 12, marginTop: 1 },
-  headerActions: { flexDirection: "row", alignItems: "center", gap: 14, paddingRight: 2 },
+  title: { color: colors.text, fontSize: 16, fontWeight: "600" },
+  subtitle: { color: colors.muted, fontSize: 13, marginTop: 1 },
+  headerActions: { flexDirection: "row", alignItems: "center", gap: 12, paddingRight: 2 },
   stopRing: { width: 22, height: 22, borderRadius: 11, borderWidth: 3, borderColor: colors.accent },
   content: { paddingBottom: 8 },
   empty: { paddingHorizontal: 28, paddingTop: 90, alignItems: "center", gap: 10 },
@@ -312,41 +314,41 @@ const styles = StyleSheet.create({
   approvalPrimary: { backgroundColor: colors.accent },
   approvalButtonText: { color: "#fff", fontWeight: "600", fontSize: 14 },
   composer: {
-    marginHorizontal: 12,
+    marginHorizontal: 15,
     borderWidth: 1,
     borderColor: colors.border,
     backgroundColor: colors.panel,
-    borderRadius: 30,
-    paddingHorizontal: 16,
-    paddingTop: 10,
-    paddingBottom: 12,
-    gap: 8,
+    borderRadius: 18,
+    paddingHorizontal: 14,
+    paddingTop: 15,
+    paddingBottom: 15,
+    gap: 7,
   },
-  input: { color: colors.text, fontSize: 19, lineHeight: 26, maxHeight: 160, paddingVertical: 8 },
-  composerRow: { flexDirection: "row", alignItems: "center", gap: 10 },
+  input: { color: colors.text, fontSize: 17, lineHeight: 22, maxHeight: 140, paddingVertical: 0 },
+  composerRow: { flexDirection: "row", alignItems: "center", gap: 8 },
   roundButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: 38,
+    height: 38,
+    borderRadius: 19,
     backgroundColor: colors.panelAlt,
     alignItems: "center",
     justifyContent: "center",
   },
   roundDisabled: { opacity: 0.45 },
   modelChip: {
-    height: 44,
-    borderRadius: 22,
-    paddingHorizontal: 18,
+    height: 38,
+    borderRadius: 19,
+    paddingHorizontal: 14,
     backgroundColor: colors.panelAlt,
     alignItems: "center",
     justifyContent: "center",
     maxWidth: 210,
   },
-  modelChipText: { color: colors.textDim, fontSize: 15, fontWeight: "500" },
+  modelChipText: { color: colors.textDim, fontSize: 14, fontWeight: "500" },
   send: {
-    width: 52,
-    height: 52,
-    borderRadius: 26,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     backgroundColor: colors.accent,
     alignItems: "center",
     justifyContent: "center",

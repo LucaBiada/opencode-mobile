@@ -1,9 +1,10 @@
-import { useState, useCallback } from "react"
+import { useState, useCallback, useMemo } from "react"
 import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator, ScrollView, Platform } from "react-native"
 import { Ionicons } from "@expo/vector-icons"
 import { useTranslation } from "react-i18next"
 import type { Part } from "../../lib/sdk"
 import { DiffView } from "./DiffView"
+import { useTheme, type Theme } from "../../theme"
 
 const TOOL_ICONS: Record<string, string> = {
   read: "glasses-outline",
@@ -35,6 +36,7 @@ function statusColor(status: string): string {
 // --- Tool-specific detail renderers ---
 
 function BashDetail({ input, output, isDark }: { input: unknown; output: unknown; isDark: boolean }) {
+  const s = useCardStyles()
   const cmd = typeof input === "object" && input !== null ? (input as Record<string, unknown>).command : undefined
   const out = typeof output === "string" ? output : undefined
   return (
@@ -59,6 +61,7 @@ function BashDetail({ input, output, isDark }: { input: unknown; output: unknown
 }
 
 function ReadDetail({ input, isDark }: { input: unknown; isDark: boolean }) {
+  const s = useCardStyles()
   const file = typeof input === "object" && input !== null ? (input as Record<string, unknown>).filePath : undefined
   const offset = typeof input === "object" && input !== null ? (input as Record<string, unknown>).offset : undefined
   const limit = typeof input === "object" && input !== null ? (input as Record<string, unknown>).limit : undefined
@@ -76,6 +79,7 @@ function ReadDetail({ input, isDark }: { input: unknown; isDark: boolean }) {
 }
 
 function WriteDetail({ input, isDark }: { input: unknown; isDark: boolean }) {
+  const s = useCardStyles()
   const file = typeof input === "object" && input !== null ? (input as Record<string, unknown>).filePath : undefined
   const content = typeof input === "object" && input !== null ? (input as Record<string, unknown>).content : undefined
   return (
@@ -97,6 +101,7 @@ function WriteDetail({ input, isDark }: { input: unknown; isDark: boolean }) {
 }
 
 function EditDetail({ input, output, isDark }: { input: unknown; output: unknown; isDark: boolean }) {
+  const s = useCardStyles()
   const file = typeof input === "object" && input !== null ? (input as Record<string, unknown>).filePath : undefined
   const old = typeof input === "object" && input !== null ? (input as Record<string, unknown>).oldString : undefined
   const replacement =
@@ -137,6 +142,7 @@ function EditDetail({ input, output, isDark }: { input: unknown; output: unknown
 }
 
 function PatchDetail({ input, isDark }: { input: unknown; isDark: boolean }) {
+  const s = useCardStyles()
   const patch = typeof input === "object" && input !== null ? (input as Record<string, unknown>).patch : undefined
   return (
     <View style={s.detailSection}>
@@ -152,6 +158,7 @@ function PatchDetail({ input, isDark }: { input: unknown; isDark: boolean }) {
 }
 
 function GlobGrepDetail({ input, output, isDark }: { input: unknown; output: unknown; isDark: boolean }) {
+  const s = useCardStyles()
   const { t } = useTranslation()
   const pattern = typeof input === "object" && input !== null ? (input as Record<string, unknown>).pattern : undefined
   const path = typeof input === "object" && input !== null ? (input as Record<string, unknown>).path : undefined
@@ -177,6 +184,7 @@ function GlobGrepDetail({ input, output, isDark }: { input: unknown; output: unk
 }
 
 function WebfetchDetail({ input, isDark }: { input: unknown; isDark: boolean }) {
+  const s = useCardStyles()
   const url = typeof input === "object" && input !== null ? (input as Record<string, unknown>).url : undefined
   return (
     <View style={s.detailSection}>
@@ -190,6 +198,7 @@ function WebfetchDetail({ input, isDark }: { input: unknown; isDark: boolean }) 
 }
 
 function TaskDetail({ input, isDark }: { input: unknown; isDark: boolean }) {
+  const s = useCardStyles()
   const description =
     typeof input === "object" && input !== null ? (input as Record<string, unknown>).description : undefined
   const prompt = typeof input === "object" && input !== null ? (input as Record<string, unknown>).prompt : undefined
@@ -208,6 +217,7 @@ function TaskDetail({ input, isDark }: { input: unknown; isDark: boolean }) {
 }
 
 function TodoDetail({ input, isDark }: { input: unknown; isDark: boolean }) {
+  const s = useCardStyles()
   const todos = typeof input === "object" && input !== null ? (input as Record<string, unknown>).todos : undefined
   if (!Array.isArray(todos)) return null
   return (
@@ -233,6 +243,7 @@ function TodoDetail({ input, isDark }: { input: unknown; isDark: boolean }) {
 }
 
 function GenericDetail({ input, output, isDark }: { input: unknown; output: unknown; isDark: boolean }) {
+  const s = useCardStyles()
   const text =
     typeof output === "string"
       ? output
@@ -254,6 +265,7 @@ function GenericDetail({ input, output, isDark }: { input: unknown; output: unkn
 }
 
 function ToolDetail({ tool, isDark }: { tool: Part; isDark: boolean }) {
+  const s = useCardStyles()
   const name = tool.tool || ""
   const input = tool.state?.input
   const output = tool.state?.output
@@ -288,6 +300,7 @@ function ToolDetail({ tool, isDark }: { tool: Part; isDark: boolean }) {
 
 // --- Error display ---
 function ErrorBanner({ message, isDark }: { message: string; isDark: boolean }) {
+  const s = useCardStyles()
   return (
     <View style={[s.errorBanner, isDark && s.errorBannerDark]}>
       <Ionicons name="alert-circle" size={14} color="#ef4444" />
@@ -312,7 +325,13 @@ interface Props {
   isDark: boolean
 }
 
+function useCardStyles() {
+  const colors = useTheme()
+  return useMemo(() => createStyles(colors), [colors])
+}
+
 export function ToolCallCard({ tool, isDark }: Props) {
+  const s = useCardStyles()
   const { t } = useTranslation()
   const [expanded, setExpanded] = useState(false)
   const icon = (tool.tool && TOOL_ICONS[tool.tool]) || "extension-puzzle-outline"
@@ -374,14 +393,15 @@ export function ToolCallCard({ tool, isDark }: Props) {
   )
 }
 
-const s = StyleSheet.create({
+function createStyles(colors: Theme) {
+  return StyleSheet.create({
   card: {
-    backgroundColor: "#ffffff",
+    backgroundColor: colors.panel,
     padding: 10,
     borderRadius: 8,
     marginTop: 8,
     borderWidth: 1,
-    borderColor: "#f0f0f0",
+    borderColor: colors.border,
   },
   cardDark: { backgroundColor: "#2a2a2a", borderColor: "#3a3a3a" },
   cardError: { borderColor: "#fecaca" },
@@ -406,7 +426,7 @@ const s = StyleSheet.create({
     gap: 6,
     marginTop: 8,
     padding: 8,
-    backgroundColor: "#fef2f2",
+    backgroundColor: colors.dangerSoft,
     borderRadius: 6,
   },
   errorBannerDark: { backgroundColor: "#1a0a0a" },
@@ -418,8 +438,8 @@ const s = StyleSheet.create({
   detailFile: {
     fontSize: 12,
     fontFamily: mono,
-    color: "#6d28d9",
-    backgroundColor: "#f5f3ff",
+    color: colors.accent,
+    backgroundColor: colors.accentSoft,
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 4,
@@ -431,7 +451,7 @@ const s = StyleSheet.create({
 
   // Code block
   codeBlock: {
-    backgroundColor: "#f8f8f8",
+    backgroundColor: colors.panelAlt,
     borderRadius: 6,
     padding: 10,
   },
@@ -439,7 +459,7 @@ const s = StyleSheet.create({
   codePre: {
     fontSize: 12,
     fontFamily: mono,
-    color: "#0a0a0a",
+    color: colors.text,
     lineHeight: 18,
   },
   codePteDark: { color: "#e5e5e5" },
@@ -455,4 +475,5 @@ const s = StyleSheet.create({
   todoText: { fontSize: 13, color: "#0a0a0a", flex: 1, lineHeight: 20 },
   todoTextDark: { color: "#e5e5e5" },
   todoDone: { textDecorationLine: "line-through", color: "#999999" },
-})
+  })
+}

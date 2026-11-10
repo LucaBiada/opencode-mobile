@@ -1,8 +1,9 @@
-import { useMemo } from "react"
+﻿import { useMemo } from "react"
 import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator } from "react-native"
 import { Ionicons } from "@expo/vector-icons"
 import { useTranslation } from "react-i18next"
 import type { Message, Session } from "../../lib/sdk"
+import { useTheme, type Theme } from "../../theme"
 import type { Provider } from "../../stores/catalog"
 
 interface Props {
@@ -40,6 +41,11 @@ function formatTime(ts: number, t: (key: string, opts?: Record<string, unknown>)
   return new Date(ts).toLocaleDateString(undefined, { month: "short", day: "numeric" })
 }
 
+function useThemedStyles() {
+  const colors = useTheme()
+  return useMemo(() => createStyles(colors), [colors])
+}
+
 export function SessionInfo({
   session,
   messages,
@@ -52,6 +58,7 @@ export function SessionInfo({
   onScrollToTop,
   onClose,
 }: Props) {
+  const s = useThemedStyles()
   const { t } = useTranslation()
   // Match TUI: last assistant message tokens (context window), cumulative cost
   const stats = useMemo(() => {
@@ -203,6 +210,7 @@ export function SessionInfo({
 }
 
 function MetaItem({ icon, label, value, isDark }: { icon: string; label: string; value: string; isDark: boolean }) {
+  const s = useThemedStyles()
   return (
     <View style={s.metaItem}>
       <Ionicons name={icon as any} size={12} color={isDark ? "#555555" : "#999999"} />
@@ -213,6 +221,7 @@ function MetaItem({ icon, label, value, isDark }: { icon: string; label: string;
 }
 
 function TokenPill({ label, value, color, isDark }: { label: string; value: number; color: string; isDark: boolean }) {
+  const s = useThemedStyles()
   return (
     <View style={[s.pill, { borderColor: color + "40" }, isDark && { backgroundColor: color + "15" }]}>
       <View style={[s.dot, { backgroundColor: color }]} />
@@ -222,18 +231,19 @@ function TokenPill({ label, value, color, isDark }: { label: string; value: numb
   )
 }
 
-const s = StyleSheet.create({
+function createStyles(colors: Theme) {
+  return StyleSheet.create({
   container: {
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderBottomWidth: 1,
-    borderBottomColor: "#e5e5e5",
-    backgroundColor: "#fafafa",
+    borderBottomColor: colors.border,
+    backgroundColor: colors.bg,
     gap: 8,
   },
   containerDark: {
     borderBottomColor: "#1a1a1a",
-    backgroundColor: "#111111",
+    backgroundColor: colors.bg,
   },
   row: {
     flexDirection: "row",
@@ -248,7 +258,7 @@ const s = StyleSheet.create({
   tokens: {
     fontSize: 14,
     fontWeight: "700",
-    color: "#0a0a0a",
+    color: colors.text,
     fontVariant: ["tabular-nums"],
   },
   percent: {
@@ -257,17 +267,17 @@ const s = StyleSheet.create({
   },
   cost: {
     fontSize: 13,
-    color: "#999999",
+    color: colors.muted,
     fontVariant: ["tabular-nums"],
   },
   bar: {
     height: 4,
     borderRadius: 2,
-    backgroundColor: "#e5e5e5",
+    backgroundColor: colors.border,
     overflow: "hidden",
   },
   barDark: {
-    backgroundColor: "#2a2a2a",
+    backgroundColor: colors.panel,
   },
   barFill: {
     height: "100%",
@@ -289,7 +299,7 @@ const s = StyleSheet.create({
     borderRadius: 10,
     paddingHorizontal: 8,
     paddingVertical: 3,
-    backgroundColor: "#ffffff",
+    backgroundColor: colors.panel,
   },
   dot: {
     width: 6,
@@ -298,12 +308,12 @@ const s = StyleSheet.create({
   },
   pillLabel: {
     fontSize: 11,
-    color: "#666666",
+    color: colors.muted,
   },
   pillValue: {
     fontSize: 11,
     fontWeight: "600",
-    color: "#0a0a0a",
+    color: colors.text,
     fontVariant: ["tabular-nums"],
   },
   meta: {
@@ -318,15 +328,15 @@ const s = StyleSheet.create({
   },
   metaLabel: {
     fontSize: 11,
-    color: "#999999",
+    color: colors.muted,
   },
   metaValue: {
     fontSize: 11,
     fontWeight: "600",
-    color: "#666666",
+    color: colors.muted,
   },
   metaValueDark: {
-    color: "#aaaaaa",
+    color: colors.muted,
   },
   actions: {
     flexDirection: "row",
@@ -336,22 +346,23 @@ const s = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 5,
-    backgroundColor: "#ffffff",
+    backgroundColor: colors.panel,
     borderWidth: 1,
-    borderColor: "#e5e5e5",
+    borderColor: colors.border,
     borderRadius: 8,
     paddingHorizontal: 10,
     paddingVertical: 6,
   },
   actionDark: {
-    backgroundColor: "#1a1a1a",
-    borderColor: "#2a2a2a",
+    backgroundColor: colors.panelAlt,
+    borderColor: colors.border,
   },
   actionText: {
     fontSize: 12,
-    color: "#666666",
+    color: colors.muted,
     fontWeight: "500",
   },
-  textDark: { color: "#e5e5e5" },
+  textDark: { color: colors.border },
   dimDark: { color: "#666666" },
-})
+  })
+}

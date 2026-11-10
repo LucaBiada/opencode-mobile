@@ -1,8 +1,9 @@
-import { useState, useCallback, useMemo, useRef } from "react"
+﻿import { useState, useCallback, useMemo, useRef } from "react"
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native"
 import { Ionicons } from "@expo/vector-icons"
 import BottomSheet, { BottomSheetBackdrop, BottomSheetSectionList, BottomSheetTextInput } from "@gorhom/bottom-sheet"
 import { useTranslation } from "react-i18next"
+import { useTheme, type Theme } from "../../theme"
 
 interface ModelItem {
   providerID: string
@@ -25,7 +26,13 @@ interface Props {
   sheetRef: React.RefObject<BottomSheet | null>
 }
 
+function useThemedStyles() {
+  const colors = useTheme()
+  return useMemo(() => createStyles(colors), [colors])
+}
+
 export function ModelPicker({ providers, selected, isDark, onSelect, sheetRef }: Props) {
+  const s = useThemedStyles()
   const { t } = useTranslation()
   const [search, setSearch] = useState("")
 
@@ -145,24 +152,25 @@ export function ModelPicker({ providers, selected, isDark, onSelect, sheetRef }:
   )
 }
 
-const s = StyleSheet.create({
+function createStyles(colors: Theme) {
+  return StyleSheet.create({
   sheet: { backgroundColor: "#ffffff" },
   sheetDark: { backgroundColor: "#1a1a1a" },
   header: { paddingHorizontal: 16, paddingBottom: 12, gap: 10 },
   title: { fontSize: 18, fontWeight: "700", color: "#0a0a0a" },
   textWhite: { color: "#ffffff" },
   search: {
-    backgroundColor: "#f5f5f5",
+    backgroundColor: colors.panelAlt,
     borderRadius: 10,
     paddingHorizontal: 14,
     paddingVertical: 10,
     fontSize: 15,
-    color: "#0a0a0a",
+    color: colors.text,
   },
   searchDark: { backgroundColor: "#2a2a2a", color: "#ffffff" },
   content: { paddingBottom: 40 },
   sectionHeader: {
-    backgroundColor: "#f5f5f5",
+    backgroundColor: colors.panelAlt,
     paddingHorizontal: 16,
     paddingVertical: 8,
   },
@@ -170,7 +178,7 @@ const s = StyleSheet.create({
   sectionTitle: {
     fontSize: 12,
     fontWeight: "700",
-    color: "#999999",
+    color: colors.muted,
     textTransform: "uppercase",
     letterSpacing: 0.5,
   },
@@ -189,4 +197,5 @@ const s = StyleSheet.create({
   rowText: { flex: 1 },
   rowName: { fontSize: 15, fontWeight: "500", color: "#0a0a0a" },
   rowProvider: { fontSize: 12, color: "#999999", marginTop: 1 },
-})
+  })
+}

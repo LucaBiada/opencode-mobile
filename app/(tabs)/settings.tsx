@@ -183,6 +183,7 @@ export default function SettingsScreen() {
               onValueChange={(value) => updateSettings({ requireBiometric: value })}
               disabled={!hasBiometrics}
               trackColor={{ false: colors.border, true: colors.accent }}
+              thumbColor="#ffffff"
             />
           }
         />
@@ -197,6 +198,7 @@ export default function SettingsScreen() {
               onValueChange={(value) => updateSettings({ requireBiometricForMessages: value })}
               disabled={!hasBiometrics || !settings.requireBiometric}
               trackColor={{ false: colors.border, true: colors.accent }}
+              thumbColor="#ffffff"
             />
           }
         />
@@ -227,6 +229,7 @@ export default function SettingsScreen() {
                   value={notifications[category]}
                   onValueChange={(value) => handleToggle(category, value)}
                   trackColor={{ false: colors.border, true: colors.accent }}
+              thumbColor="#ffffff"
                 />
               }
             />
@@ -253,6 +256,7 @@ export default function SettingsScreen() {
               onValueChange={handleCrashReportingToggle}
               disabled={telemetryUpdating}
               trackColor={{ false: colors.border, true: colors.accent }}
+              thumbColor="#ffffff"
             />
           }
         />

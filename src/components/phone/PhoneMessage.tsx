@@ -112,12 +112,15 @@ export const PhoneMessage = memo(function PhoneMessage({ message, parts }: { mes
 
 const styles = StyleSheet.create({
   assistant: { paddingHorizontal: 16, paddingTop: 24 },
-  userRow: { paddingHorizontal: 16, paddingTop: 24 },
+  userRow: { paddingHorizontal: 15, paddingTop: 24, alignItems: "flex-end" },
   userBubble: {
-    backgroundColor: colors.panel,
-    borderRadius: 14,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
+    maxWidth: "78%",
+    backgroundColor: "#0D0D0E",
+    borderRadius: 8,
+    paddingLeft: 12,
+    paddingRight: 13,
+    paddingTop: 16,
+    paddingBottom: 13,
   },
   reasoning: { marginBottom: 10 },
   reasoningHeader: { flexDirection: "row", alignItems: "center", gap: 6 },

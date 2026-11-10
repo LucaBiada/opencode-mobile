@@ -8,23 +8,28 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  useColorScheme,
   View,
 } from "react-native"
 import { Stack, useLocalSearchParams } from "expo-router"
 import { Ionicons } from "@expo/vector-icons"
 
-import { MessageBubble } from "../../src/components/chat/MessageBubble"
+import { PhoneMessage } from "../../src/components/phone/PhoneMessage"
+import { phoneColors as colors } from "../../src/components/phone/theme"
 import { phoneEngine } from "../../src/engines/phone/engine"
 import type { Event, Message, Part } from "../../src/lib/sdk"
 
+function shortModel(modelID: string): string {
+  const tail = modelID.split("/").pop() ?? modelID
+  return tail.replace(/-GGUF$/i, "").replace(/^unsloth\//i, "")
+}
+
 export default function PhoneChatScreen() {
-  const isDark = useColorScheme() === "dark"
   const { id } = useLocalSearchParams<{ id: string }>()
 
   const [messages, setMessages] = useState<Message[]>([])
   const [parts, setParts] = useState<Record<string, Part[]>>({})
   const [title, setTitle] = useState("Chat")
+  const [modelID, setModelID] = useState("")
   const [input, setInput] = useState("")
   const [sending, setSending] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -57,6 +62,7 @@ export default function PhoneChatScreen() {
       const session = await phoneEngine.getSession(id).catch(() => null)
       if (!active || !session) return
       setTitle(session.title)
+      setModelID(session.version)
       const loaded = await phoneEngine.getMessages(id)
       if (!active) return
       setMessages(loaded.map((entry) => entry.info))
@@ -80,7 +86,6 @@ export default function PhoneChatScreen() {
           continue
         }
         if (event.type === "permission.asked") {
-          console.log(`[phone-ui] permission.asked ${String(payload.id)} tool=${String(payload.tool)}`)
           setApproval({
             id: String(payload.id),
             tool: String(payload.tool),
@@ -89,7 +94,6 @@ export default function PhoneChatScreen() {
           continue
         }
         if (event.type === "session.idle") {
-          console.log("[phone-ui] session.idle, clearing approval")
           setSending(false)
           setApproval(null)
           continue
@@ -133,81 +137,116 @@ export default function PhoneChatScreen() {
   const decide = async (reply: "once" | "always" | "reject") => {
     if (!approval) return
     const requestID = approval.id
-    console.log(`[phone-ui] decide ${requestID} reply=${reply}`)
     setApproval(null)
     await phoneEngine.replyPermission(requestID, reply)
   }
 
   return (
     <KeyboardAvoidingView
-      style={[styles.container, isDark && styles.containerDark]}
+      style={styles.container}
       behavior={Platform.OS === "ios" ? "padding" : undefined}
       keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
     >
-      <Stack.Screen options={{ title }} />
+      <Stack.Screen
+        options={{
+          headerStyle: { backgroundColor: colors.bg },
+          headerShadowVisible: false,
+          headerTintColor: colors.text,
+          headerTitleAlign: "center",
+          headerTitle: () => (
+            <View style={styles.headerTitle}>
+              <Text style={styles.title} numberOfLines={1}>
+                {title}
+              </Text>
+              <Text style={styles.subtitle} numberOfLines={1}>
+                Phone · {shortModel(modelID)}
+              </Text>
+            </View>
+          ),
+          headerRight: () =>
+            sending ? (
+              <TouchableOpacity onPress={() => void stop()} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+                <View style={styles.stopRing} />
+              </TouchableOpacity>
+            ) : null,
+        }}
+      />
+
       <ScrollView ref={scroll} style={{ flex: 1 }} contentContainerStyle={styles.content}>
         {messages.length === 0 ? (
-          <Text style={[styles.empty, isDark && styles.hintDark]}>
-            This chat runs on your phone. No computer, no server.
-          </Text>
+          <View style={styles.empty}>
+            <Text style={styles.emptyTitle}>This chat runs on your phone</Text>
+            <Text style={styles.emptyBody}>No computer, no server. Files the agent writes stay in its workspace.</Text>
+          </View>
         ) : (
           messages.map((message) => (
-            <MessageBubble key={message.id} message={message} parts={parts[message.id] ?? []} isDark={isDark} />
+            <PhoneMessage key={message.id} message={message} parts={parts[message.id] ?? []} />
           ))
         )}
         {sending && messages.length > 0 ? (
           <View style={styles.working}>
-            <ActivityIndicator size="small" color="#4f46e5" />
-            <Text style={[styles.workingText, isDark && styles.hintDark]}>Working…</Text>
+            <ActivityIndicator size="small" color={colors.accent} />
           </View>
         ) : null}
         {error ? <Text style={styles.error}>{error}</Text> : null}
+        <View style={{ height: 12 }} />
       </ScrollView>
 
-      <View style={[styles.composer, isDark && styles.composerDark]}>
+      <View style={styles.bottom}>
         {approval ? (
-          <View style={styles.approvalWrap}>
-            <View style={[styles.approval, isDark && styles.approvalDark]}>
-              <Text style={[styles.approvalTitle, isDark && styles.textDark]}>
-                Allow {approval.tool}?
+          <View style={styles.approval}>
+            <Text style={styles.approvalTitle}>Allow {approval.tool}?</Text>
+            {approval.preview ? (
+              <Text style={styles.approvalPreview} numberOfLines={5}>
+                {approval.preview}
               </Text>
-              {approval.preview ? (
-                <Text style={[styles.approvalPreview, isDark && styles.hintDark]} numberOfLines={6}>
-                  {approval.preview}
-                </Text>
-              ) : null}
-              <View style={styles.approvalActions}>
-                <TouchableOpacity style={[styles.approvalButton, styles.approvalDanger]} onPress={() => void decide("reject")}>
-                  <Text style={styles.approvalButtonText}>Reject</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={[styles.approvalButton, styles.approvalNeutral]} onPress={() => void decide("always")}>
-                  <Text style={styles.approvalButtonText}>Always</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={[styles.approvalButton, styles.approvalPrimary]} onPress={() => void decide("once")}>
-                  <Text style={styles.approvalButtonText}>Allow once</Text>
-                </TouchableOpacity>
-              </View>
+            ) : null}
+            <View style={styles.approvalActions}>
+              <TouchableOpacity style={[styles.approvalButton, styles.approvalGhost]} onPress={() => void decide("reject")}>
+                <Text style={[styles.approvalButtonText, { color: colors.textDim }]}>Reject</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={[styles.approvalButton, styles.approvalGhost]} onPress={() => void decide("always")}>
+                <Text style={[styles.approvalButtonText, { color: colors.textDim }]}>Always</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={[styles.approvalButton, styles.approvalPrimary]} onPress={() => void decide("once")}>
+                <Text style={styles.approvalButtonText}>Allow once</Text>
+              </TouchableOpacity>
             </View>
           </View>
         ) : null}
-        <View style={styles.composerRow}>
-        <TextInput
-          style={[styles.input, isDark && styles.inputDark]}
-          value={input}
-          onChangeText={setInput}
-          placeholder="Message…"
-          placeholderTextColor={isDark ? "#777" : "#999"}
-          multiline
-          testID="phone-composer"
-        />
-        <TouchableOpacity
-          style={[styles.send, sending && styles.sendStop]}
-          onPress={sending ? stop : send}
-          disabled={!sending && input.trim().length === 0}
-          testID="phone-send"
-        >
-          <Ionicons name={sending ? "stop" : "arrow-up"} size={20} color="#fff" />
-        </TouchableOpacity>
+
+        <View style={styles.composer}>
+          <TextInput
+            style={styles.input}
+            value={input}
+            onChangeText={setInput}
+            placeholder="Also, add"
+            placeholderTextColor={colors.muted}
+            multiline
+            testID="phone-composer"
+          />
+          <View style={styles.composerRow}>
+            <View style={[styles.roundButton, styles.roundDisabled]}>
+              <Ionicons name="add" size={22} color={colors.muted} />
+            </View>
+            <View style={styles.modelChip}>
+              <Text style={styles.modelChipText} numberOfLines={1}>
+                {modelID ? shortModel(modelID) : "Model"}
+              </Text>
+            </View>
+            <View style={{ flex: 1 }} />
+            <View style={[styles.roundButton, styles.roundDisabled]}>
+              <Ionicons name="mic-outline" size={18} color={colors.muted} />
+            </View>
+            <TouchableOpacity
+              style={[styles.send, sending && styles.sendStop]}
+              onPress={sending ? stop : send}
+              disabled={!sending && input.trim().length === 0}
+              testID="phone-send"
+            >
+              <Ionicons name={sending ? "stop" : "arrow-up"} size={20} color="#fff" />
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
     </KeyboardAvoidingView>
@@ -215,66 +254,79 @@ export default function PhoneChatScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#fff" },
-  containerDark: { backgroundColor: "#0a0a0a" },
-  content: { padding: 12, paddingBottom: 20 },
-  empty: { color: "#666", textAlign: "center", marginTop: 40 },
-  working: { flexDirection: "row", alignItems: "center", gap: 8, padding: 12 },
-  workingText: { color: "#666", fontSize: 13 },
-  error: { color: "#dc2626", padding: 12 },
-  composer: {
-    flexDirection: "column",
-    gap: 8,
-    padding: 10,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: "#e5e5e5",
-  },
-  composerRow: { flexDirection: "row", alignItems: "flex-end", gap: 8 },
-  approvalWrap: { paddingBottom: 4 },
+  container: { flex: 1, backgroundColor: colors.bg },
+  headerTitle: { alignItems: "center", maxWidth: 220 },
+  title: { color: colors.text, fontSize: 17, fontWeight: "600" },
+  subtitle: { color: colors.muted, fontSize: 12, marginTop: 1 },
+  stopRing: { width: 22, height: 22, borderRadius: 11, borderWidth: 3, borderColor: colors.accent },
+  content: { paddingBottom: 8 },
+  empty: { paddingHorizontal: 28, paddingTop: 80, alignItems: "center", gap: 8 },
+  emptyTitle: { color: colors.text, fontSize: 18, fontWeight: "600", textAlign: "center" },
+  emptyBody: { color: colors.muted, fontSize: 14, lineHeight: 21, textAlign: "center" },
+  working: { paddingVertical: 14, alignItems: "center" },
+  error: { color: colors.danger, paddingHorizontal: 16, paddingTop: 12, fontSize: 14 },
+  bottom: { paddingBottom: 10 },
   approval: {
+    marginHorizontal: 12,
+    marginBottom: 8,
     borderWidth: 1,
-    borderColor: "#f59e0b",
-    backgroundColor: "#fffbeb",
-    borderRadius: 12,
-    padding: 12,
+    borderColor: colors.accent,
+    backgroundColor: colors.panel,
+    borderRadius: 16,
+    padding: 14,
     gap: 8,
   },
-  approvalDark: { backgroundColor: "#221a05", borderColor: "#b45309" },
-  approvalTitle: { fontWeight: "700", color: "#0a0a0a" },
+  approvalTitle: { color: colors.text, fontWeight: "600", fontSize: 15 },
   approvalPreview: {
+    color: colors.muted,
     fontFamily: Platform.select({ ios: "Menlo", android: "monospace" }),
     fontSize: 12,
-    color: "#444",
+    lineHeight: 18,
   },
-  approvalActions: { flexDirection: "row", gap: 8, justifyContent: "flex-end" },
-  approvalButton: { paddingVertical: 8, paddingHorizontal: 12, borderRadius: 8 },
-  approvalDanger: { backgroundColor: "#dc2626" },
-  approvalNeutral: { backgroundColor: "#525252" },
-  approvalPrimary: { backgroundColor: "#4f46e5" },
+  approvalActions: { flexDirection: "row", gap: 8, justifyContent: "flex-end", marginTop: 2 },
+  approvalButton: { paddingVertical: 8, paddingHorizontal: 14, borderRadius: 10 },
+  approvalGhost: { backgroundColor: colors.panelAlt },
+  approvalPrimary: { backgroundColor: colors.accent },
   approvalButtonText: { color: "#fff", fontWeight: "600", fontSize: 13 },
-  composerDark: { borderTopColor: "#222", backgroundColor: "#0a0a0a" },
-  input: {
-    flex: 1,
-    maxHeight: 140,
+  composer: {
+    marginHorizontal: 12,
     borderWidth: 1,
-    borderColor: "#e2e2e2",
-    borderRadius: 18,
+    borderColor: colors.border,
+    backgroundColor: colors.panel,
+    borderRadius: 24,
     paddingHorizontal: 14,
-    paddingTop: 10,
+    paddingTop: 8,
     paddingBottom: 10,
-    fontSize: 15,
-    color: "#0a0a0a",
+    gap: 6,
   },
-  inputDark: { borderColor: "#2a2a2a", backgroundColor: "#141414", color: "#fff" },
-  send: {
+  input: { color: colors.text, fontSize: 17, lineHeight: 23, maxHeight: 140, paddingVertical: 6 },
+  composerRow: { flexDirection: "row", alignItems: "center", gap: 8 },
+  roundButton: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: "#4f46e5",
+    backgroundColor: colors.panelAlt,
     alignItems: "center",
     justifyContent: "center",
   },
-  sendStop: { backgroundColor: "#dc2626" },
-  textDark: { color: "#fff" },
-  hintDark: { color: "#999" },
+  roundDisabled: { opacity: 0.45 },
+  modelChip: {
+    height: 40,
+    borderRadius: 20,
+    paddingHorizontal: 16,
+    backgroundColor: colors.panelAlt,
+    alignItems: "center",
+    justifyContent: "center",
+    maxWidth: 200,
+  },
+  modelChipText: { color: colors.textDim, fontSize: 14, fontWeight: "500" },
+  send: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: colors.accent,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  sendStop: { backgroundColor: colors.accentPressed },
 })

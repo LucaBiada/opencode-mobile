@@ -126,11 +126,52 @@ const darkTheme = {
 
 interface Props {
   children: string
+  // "phone" is the dark, prose-first phone-mode look: no purple, coral links,
+  // blue-grey code pills, roomier line height.
+  variant?: "default" | "phone"
 }
 
-export function Markdown({ children }: Props) {
+const phoneTheme = {
+  ...darkTheme,
+  text: { color: "#e8e8ea", fontSize: 16, lineHeight: 26 },
+  paragraph: { marginTop: 0, marginBottom: 12 },
+  h1: { ...darkTheme.h1, color: "#ffffff", fontSize: 22, marginTop: 16, marginBottom: 10 },
+  h2: { ...darkTheme.h2, color: "#ffffff", fontSize: 19, marginTop: 14, marginBottom: 8 },
+  h3: { ...darkTheme.h3, color: "#ffffff", fontSize: 17, marginTop: 12, marginBottom: 6 },
+  link: { color: "#e8836a", textDecorationLine: "underline" as const },
+  blockquote: {
+    ...darkTheme.blockquote,
+    borderLeftColor: "#2e2e33",
+    paddingLeft: 14,
+    marginVertical: 8,
+  },
+  code: {
+    ...darkTheme.code,
+    backgroundColor: "#141c26",
+    color: "#9cc3e5",
+    fontFamily: mono,
+    fontSize: 14,
+    paddingHorizontal: 6,
+    paddingVertical: 3,
+    borderRadius: 6,
+  },
+  codespan: {
+    ...darkTheme.codespan,
+    backgroundColor: "#141c26",
+    color: "#9cc3e5",
+    fontFamily: mono,
+    fontSize: 14,
+    paddingHorizontal: 6,
+    paddingVertical: 3,
+    borderRadius: 6,
+  },
+  li: { marginBottom: 6 },
+  hr: { ...darkTheme.hr, backgroundColor: "#232326" },
+}
+
+export function Markdown({ children, variant = "default" }: Props) {
   const isDark = useColorScheme() === "dark"
-  const theme = isDark ? darkTheme : lightTheme
+  const theme = variant === "phone" ? phoneTheme : isDark ? darkTheme : lightTheme
 
   // A module-scope singleton renderer would share one CustomRenderer (and
   // its underlying github-slugger) across every Markdown instance and every

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+﻿import { useEffect, useMemo, useState } from "react"
 import {
   View,
   Text,
@@ -15,6 +15,7 @@ import {
 import { router, useLocalSearchParams } from "expo-router"
 import { Ionicons } from "@expo/vector-icons"
 import { useTranslation } from "react-i18next"
+import { useTheme, type Theme } from "../../src/theme"
 import { useConnections } from "../../src/stores/connections"
 import { useEvents } from "../../src/stores/events"
 import type { ConnectionType } from "../../src/lib/types"
@@ -40,6 +41,8 @@ export default function EditConnectionScreen() {
   const { id } = useLocalSearchParams<{ id: string }>()
   const colorScheme = useColorScheme()
   const isDark = colorScheme === "dark"
+  const colors = useTheme()
+  const styles = useMemo(() => createStyles(colors), [colors])
   const { t } = useTranslation()
 
   const { connections, updateConnection, removeConnection, testConnection } = useConnections()
@@ -327,13 +330,14 @@ export default function EditConnectionScreen() {
   )
 }
 
-const styles = StyleSheet.create({
+function createStyles(colors: Theme) {
+  return StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#ffffff",
+    backgroundColor: colors.bg,
   },
   containerDark: {
-    backgroundColor: "#0a0a0a",
+    backgroundColor: colors.bg,
   },
   center: {
     justifyContent: "center",
@@ -345,17 +349,17 @@ const styles = StyleSheet.create({
   },
   errorText: {
     fontSize: 16,
-    color: "#666666",
+    color: colors.muted,
   },
   label: {
     fontSize: 14,
     fontWeight: "600",
-    color: "#0a0a0a",
+    color: colors.text,
     marginTop: 16,
     marginBottom: 8,
   },
   labelDark: {
-    color: "#ffffff",
+    color: colors.text,
   },
   typeContainer: {
     flexDirection: "row",
@@ -368,56 +372,56 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     padding: 12,
     borderRadius: 8,
-    backgroundColor: "#f5f5f5",
+    backgroundColor: colors.panelAlt,
     gap: 6,
   },
   typeOptionDark: {
-    backgroundColor: "#1a1a1a",
+    backgroundColor: colors.panel,
   },
   typeOptionSelected: {
-    backgroundColor: "#0a0a0a",
+    backgroundColor: colors.bg,
   },
   typeOptionSelectedDark: {
-    backgroundColor: "#ffffff",
+    backgroundColor: colors.panel,
   },
   typeLabel: {
     fontSize: 13,
     fontWeight: "500",
-    color: "#666666",
+    color: colors.muted,
   },
   textDark: {
-    color: "#ffffff",
+    color: colors.text,
   },
   typeLabelSelected: {
-    color: "#ffffff",
+    color: colors.text,
   },
   typeLabelSelectedDark: {
-    color: "#0a0a0a",
+    color: colors.text,
   },
   input: {
-    backgroundColor: "#f5f5f5",
+    backgroundColor: colors.panelAlt,
     borderRadius: 8,
     paddingHorizontal: 16,
     paddingVertical: 12,
     fontSize: 16,
-    color: "#0a0a0a",
+    color: colors.text,
   },
   inputDark: {
-    backgroundColor: "#1a1a1a",
-    color: "#ffffff",
+    backgroundColor: colors.panel,
+    color: colors.text,
   },
   hint: {
     fontSize: 13,
-    color: "#666666",
+    color: colors.muted,
     marginTop: 6,
   },
   hintDark: {
-    color: "#888888",
+    color: colors.muted,
   },
   sectionTitle: {
     fontSize: 18,
     fontWeight: "600",
-    color: "#0a0a0a",
+    color: colors.text,
     marginTop: 32,
     marginBottom: 8,
   },
@@ -433,33 +437,33 @@ const styles = StyleSheet.create({
     padding: 16,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: "#e5e5e5",
+    borderColor: colors.border,
   },
   testButtonDark: {
-    borderColor: "#333333",
+    borderColor: colors.border,
   },
   testButtonText: {
     fontSize: 16,
     fontWeight: "600",
-    color: "#0a0a0a",
+    color: colors.text,
   },
   saveButton: {
     alignItems: "center",
     justifyContent: "center",
     padding: 16,
     borderRadius: 12,
-    backgroundColor: "#0a0a0a",
+    backgroundColor: colors.bg,
   },
   saveButtonDark: {
-    backgroundColor: "#ffffff",
+    backgroundColor: colors.panel,
   },
   saveButtonText: {
     fontSize: 16,
     fontWeight: "600",
-    color: "#ffffff",
+    color: colors.text,
   },
   saveButtonTextDark: {
-    color: "#0a0a0a",
+    color: colors.text,
   },
   deleteButton: {
     flexDirection: "row",
@@ -468,11 +472,12 @@ const styles = StyleSheet.create({
     gap: 8,
     padding: 16,
     borderRadius: 12,
-    backgroundColor: "#fef2f2",
+    backgroundColor: colors.dangerSoft,
   },
   deleteButtonText: {
     fontSize: 16,
     fontWeight: "600",
-    color: "#ef4444",
+    color: colors.danger,
   },
-})
+  })
+}

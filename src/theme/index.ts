@@ -20,6 +20,7 @@ export interface Theme {
   overlay: string
   accentSoft: string
   successSoft: string
+  dangerSoft: string
 }
 
 export const darkColors: Theme = {
@@ -40,6 +41,7 @@ export const darkColors: Theme = {
   overlay: "rgba(0,0,0,0.6)",
   accentSoft: "#2A2140",
   successSoft: "#14251A",
+  dangerSoft: "#2A1414",
 }
 
 export const lightColors: Theme = {
@@ -60,6 +62,7 @@ export const lightColors: Theme = {
   overlay: "rgba(0,0,0,0.35)",
   accentSoft: "#EDE9FE",
   successSoft: "#ECFDF3",
+  dangerSoft: "#FEF2F2",
 }
 
 export function useTheme(): Theme {

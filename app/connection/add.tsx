@@ -1,4 +1,4 @@
-import { useState } from "react"
+﻿import { useMemo, useState } from "react"
 import {
   View,
   Text,
@@ -22,10 +22,13 @@ import { captureDiagnostic } from "../../src/lib/sentry"
 import { parseUrl } from "../../src/lib/diagnostics-classify"
 import { buildAuth } from "../../src/lib/auth"
 import { AnalyticsEvent, track } from "../../src/lib/analytics"
+import { useTheme, type Theme } from "../../src/theme"
 
 export default function AddConnectionScreen() {
   const colorScheme = useColorScheme()
   const isDark = colorScheme === "dark"
+  const colors = useTheme()
+  const styles = useMemo(() => createStyles(colors), [colors])
   const { t } = useTranslation()
 
   const { addConnection, testConnection } = useConnections()
@@ -499,13 +502,14 @@ export default function AddConnectionScreen() {
   )
 }
 
-const styles = StyleSheet.create({
+function createStyles(colors: Theme) {
+  return StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#ffffff",
+    backgroundColor: colors.bg,
   },
   containerDark: {
-    backgroundColor: "#0a0a0a",
+    backgroundColor: colors.bg,
   },
   content: {
     padding: 16,
@@ -519,12 +523,12 @@ const styles = StyleSheet.create({
   quickTitle: {
     fontSize: 24,
     fontWeight: "700",
-    color: "#0a0a0a",
+    color: colors.text,
     marginTop: 16,
   },
   quickSubtitle: {
     fontSize: 15,
-    color: "#666666",
+    color: colors.muted,
     marginTop: 8,
     textAlign: "center",
   },
@@ -539,7 +543,7 @@ const styles = StyleSheet.create({
   ipColon: {
     fontSize: 20,
     fontWeight: "600",
-    color: "#0a0a0a",
+    color: colors.text,
   },
   portInput: {
     width: 80,
@@ -551,55 +555,55 @@ const styles = StyleSheet.create({
     gap: 8,
     padding: 16,
     borderRadius: 12,
-    backgroundColor: "#0a0a0a",
+    backgroundColor: colors.bg,
     marginTop: 24,
   },
   connectButtonDark: {
-    backgroundColor: "#ffffff",
+    backgroundColor: colors.panel,
   },
   connectButtonText: {
     fontSize: 18,
     fontWeight: "600",
-    color: "#ffffff",
+    color: colors.text,
   },
   connectButtonTextDark: {
-    color: "#0a0a0a",
+    color: colors.text,
   },
   helpBox: {
-    backgroundColor: "#f5f5f5",
+    backgroundColor: colors.panelAlt,
     borderRadius: 12,
     padding: 16,
     marginTop: 24,
   },
   helpBoxDark: {
-    backgroundColor: "#1a1a1a",
+    backgroundColor: colors.panel,
   },
   helpTitle: {
     fontSize: 14,
     fontWeight: "600",
-    color: "#0a0a0a",
+    color: colors.text,
     marginBottom: 8,
   },
   helpText: {
     fontSize: 13,
-    color: "#666666",
+    color: colors.muted,
     lineHeight: 20,
   },
   code: {
     fontFamily: "monospace",
-    backgroundColor: "#e5e5e5",
+    backgroundColor: colors.panelAlt,
     paddingHorizontal: 4,
     borderRadius: 4,
   },
   usernameHint: {
     fontSize: 12,
-    color: "#666666",
+    color: colors.muted,
     marginTop: 6,
     marginBottom: 4,
     lineHeight: 18,
   },
   usernameHintLink: {
-    color: "#6366f1",
+    color: colors.accent,
     fontWeight: "600",
   },
   advancedLink: {
@@ -612,7 +616,7 @@ const styles = StyleSheet.create({
   },
   advancedLinkText: {
     fontSize: 14,
-    color: "#666666",
+    color: colors.muted,
   },
   backToQuick: {
     flexDirection: "row",
@@ -622,18 +626,18 @@ const styles = StyleSheet.create({
   },
   backToQuickText: {
     fontSize: 14,
-    color: "#666666",
+    color: colors.muted,
   },
   // Original styles
   label: {
     fontSize: 14,
     fontWeight: "600",
-    color: "#0a0a0a",
+    color: colors.text,
     marginTop: 16,
     marginBottom: 8,
   },
   labelDark: {
-    color: "#ffffff",
+    color: colors.text,
   },
   typeContainer: {
     flexDirection: "row",
@@ -646,57 +650,58 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     padding: 12,
     borderRadius: 8,
-    backgroundColor: "#f5f5f5",
+    backgroundColor: colors.panelAlt,
     gap: 6,
   },
   typeOptionDark: {
-    backgroundColor: "#1a1a1a",
+    backgroundColor: colors.panel,
   },
   typeOptionSelected: {
-    backgroundColor: "#0a0a0a",
+    backgroundColor: colors.bg,
   },
   typeOptionSelectedDark: {
-    backgroundColor: "#ffffff",
+    backgroundColor: colors.panel,
   },
   typeLabel: {
     fontSize: 13,
     fontWeight: "500",
-    color: "#666666",
+    color: colors.muted,
   },
   textDark: {
-    color: "#ffffff",
+    color: colors.text,
   },
   typeLabelSelected: {
-    color: "#ffffff",
+    color: colors.text,
   },
   typeLabelSelectedDark: {
-    color: "#0a0a0a",
+    color: colors.text,
   },
   hint: {
     fontSize: 13,
-    color: "#666666",
+    color: colors.muted,
     marginTop: 8,
   },
   hintDark: {
-    color: "#888888",
+    color: colors.muted,
   },
   input: {
-    backgroundColor: "#f5f5f5",
+    backgroundColor: colors.panelAlt,
     borderRadius: 8,
     paddingHorizontal: 16,
     paddingVertical: 12,
     fontSize: 16,
-    color: "#0a0a0a",
+    color: colors.text,
   },
   inputDark: {
-    backgroundColor: "#1a1a1a",
-    color: "#ffffff",
+    backgroundColor: colors.panel,
+    color: colors.text,
   },
   sectionTitle: {
     fontSize: 18,
     fontWeight: "600",
-    color: "#0a0a0a",
+    color: colors.text,
     marginTop: 32,
     marginBottom: 8,
   },
-})
+  })
+}

@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react"
+﻿import { useCallback, useMemo, useState } from "react"
 import {
   ActivityIndicator,
   Alert,
@@ -27,11 +27,14 @@ import {
 } from "../../src/lib/phone/providers"
 import { listProviders, seedProviders, upsertProvider } from "../../src/engines/phone/store"
 import { phoneEngine } from "../../src/engines/phone/engine"
+import { useTheme, type Theme } from "../../src/theme"
 
 const LAST_PROVIDER_KEY = "devmote_last_provider"
 
 export default function PhoneModeScreen() {
   const isDark = useColorScheme() === "dark"
+  const colors = useTheme()
+  const styles = useMemo(() => createStyles(colors), [colors])
   const { t } = useTranslation()
 
   const [providers, setProviders] = useState<Provider[]>([])
@@ -265,7 +268,8 @@ export default function PhoneModeScreen() {
   )
 }
 
-const styles = StyleSheet.create({
+function createStyles(colors: Theme) {
+  return StyleSheet.create({
   container: { flex: 1, backgroundColor: "#fff" },
   containerDark: { backgroundColor: "#0a0a0a" },
   content: { padding: 20, paddingBottom: 40 },
@@ -275,12 +279,12 @@ const styles = StyleSheet.create({
   spaced: { marginTop: 28 },
   input: {
     borderWidth: 1,
-    borderColor: "#e2e2e2",
+    borderColor: colors.border,
     borderRadius: 10,
     paddingHorizontal: 12,
     paddingVertical: 9,
     fontSize: 15,
-    color: "#0a0a0a",
+    color: colors.text,
     marginTop: 8,
   },
   inputDark: { borderColor: "#2a2a2a", backgroundColor: "#141414", color: "#fff" },
@@ -290,7 +294,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     gap: 8,
-    backgroundColor: "#333",
+    backgroundColor: colors.panelAlt,
     borderRadius: 10,
     paddingVertical: 12,
     marginTop: 10,
@@ -302,7 +306,7 @@ const styles = StyleSheet.create({
   models: { flexDirection: "row", flexWrap: "wrap", gap: 8, marginTop: 8 },
   modelChip: { borderWidth: 1, borderColor: "#d4d4d4", borderRadius: 999, paddingHorizontal: 12, paddingVertical: 6 },
   modelChipActive: { backgroundColor: "#4f46e5", borderColor: "#4f46e5" },
-  modelText: { fontSize: 12, color: "#333" },
+  modelText: { fontSize: 12, color: colors.panelAlt },
   modelTextActive: { color: "#fff", fontWeight: "600" },
   empty: { color: "#666", marginTop: 8 },
   sessionRow: {
@@ -311,7 +315,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     paddingVertical: 12,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: "#e5e5e5",
+    borderBottomColor: colors.border,
   },
   sessionRowDark: { borderBottomColor: "#222" },
   sessionText: { flex: 1, paddingRight: 12 },
@@ -319,4 +323,5 @@ const styles = StyleSheet.create({
   sessionMeta: { fontSize: 12, color: "#666", marginTop: 2 },
   textDark: { color: "#fff" },
   hintDark: { color: "#999" },
-})
+  })
+}

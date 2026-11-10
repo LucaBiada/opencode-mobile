@@ -1,3 +1,4 @@
+﻿import { useMemo } from "react"
 import { View, Text, FlatList, TouchableOpacity, StyleSheet, useColorScheme, Alert } from "react-native"
 import { router } from "expo-router"
 import { Ionicons } from "@expo/vector-icons"
@@ -5,6 +6,7 @@ import { useTranslation } from "react-i18next"
 import { useConnections } from "../../src/stores/connections"
 import { useSettings } from "../../src/stores/settings"
 import type { ServerConnection } from "../../src/lib/types"
+import { useTheme, type Theme } from "../../src/theme"
 
 const PAGE_SIZE_OPTIONS = [10, 25, 50, 100, 200] as const
 
@@ -24,6 +26,8 @@ function ConnectionItem({
   onDelete: () => void
 }) {
   const { t } = useTranslation()
+  const colors = useTheme()
+  const styles = useMemo(() => createStyles(colors), [colors])
   const typeIcon = connection.type === "local" ? "wifi" : connection.type === "tunnel" ? "globe" : "cloud"
 
   const handleLongPress = () => {
@@ -90,6 +94,8 @@ function ConnectionItem({
 export default function ConnectionsScreen() {
   const colorScheme = useColorScheme()
   const isDark = colorScheme === "dark"
+  const colors = useTheme()
+  const styles = useMemo(() => createStyles(colors), [colors])
   const { t } = useTranslation()
 
   const { connections, activeConnection, setActiveConnection, removeConnection } = useConnections()
@@ -186,53 +192,54 @@ export default function ConnectionsScreen() {
 
       {/* FAB to add connection */}
       <TouchableOpacity style={[styles.fab, isDark && styles.fabDark]} onPress={() => router.push("/connection/add")}>
-        <Ionicons name="add" size={28} color={isDark ? "#0a0a0a" : "#ffffff"} />
+        <Ionicons name="add" size={28} color={isDark ? colors.text : "#ffffff"} />
       </TouchableOpacity>
     </View>
   )
 }
 
-const styles = StyleSheet.create({
+function createStyles(colors: Theme) {
+  return StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#ffffff",
+    backgroundColor: colors.bg,
   },
   containerDark: {
-    backgroundColor: "#0a0a0a",
+    backgroundColor: colors.bg,
   },
   header: {
     padding: 16,
     borderBottomWidth: 1,
-    borderBottomColor: "#e5e5e5",
+    borderBottomColor: colors.border,
   },
   headerDark: {
-    borderBottomColor: "#1a1a1a",
+    borderBottomColor: colors.border,
   },
   headerText: {
     fontSize: 13,
-    color: "#666666",
+    color: colors.muted,
   },
   connectionItem: {
     flexDirection: "row",
     alignItems: "center",
     padding: 16,
     borderBottomWidth: 1,
-    borderBottomColor: "#e5e5e5",
+    borderBottomColor: colors.border,
   },
   connectionItemDark: {
-    borderBottomColor: "#1a1a1a",
+    borderBottomColor: colors.border,
   },
   connectionItemActive: {
-    backgroundColor: "#f0fdf4",
+    backgroundColor: colors.successSoft,
   },
   connectionItemActiveDark: {
-    backgroundColor: "#1a2e1a",
+    backgroundColor: colors.successSoft,
   },
   connectionIcon: {
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: "#f5f5f5",
+    backgroundColor: colors.panelAlt,
     justifyContent: "center",
     alignItems: "center",
     marginRight: 12,
@@ -248,49 +255,49 @@ const styles = StyleSheet.create({
   connectionName: {
     fontSize: 16,
     fontWeight: "600",
-    color: "#0a0a0a",
+    color: colors.text,
   },
   connectionNameActive: {
-    color: "#0a0a0a",
+    color: colors.text,
   },
   connectionNameActiveDark: {
-    color: "#ffffff",
+    color: colors.text,
   },
   textDark: {
-    color: "#ffffff",
+    color: colors.text,
   },
   activeBadge: {
-    backgroundColor: "#22c55e",
+    backgroundColor: colors.success,
     paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: 4,
   },
   activeBadgeDark: {
-    backgroundColor: "#16a34a",
+    backgroundColor: colors.success,
   },
   activeBadgeText: {
-    color: "#ffffff",
+    color: colors.text,
     fontSize: 11,
     fontWeight: "600",
   },
   activeBadgeTextDark: {
-    color: "#ffffff",
+    color: colors.text,
   },
   connectionUrl: {
     fontSize: 13,
-    color: "#666666",
+    color: colors.muted,
     marginTop: 2,
   },
   connectionUrlActive: {
-    color: "#888888",
+    color: colors.muted,
   },
   connectionMeta: {
     fontSize: 12,
-    color: "#999999",
+    color: colors.muted,
     marginTop: 4,
   },
   metaDark: {
-    color: "#888888",
+    color: colors.muted,
   },
   emptyContainer: {
     flex: 1,
@@ -302,11 +309,11 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: "600",
     marginTop: 16,
-    color: "#0a0a0a",
+    color: colors.text,
   },
   emptySubtitle: {
     fontSize: 14,
-    color: "#666666",
+    color: colors.muted,
     marginTop: 8,
     textAlign: "center",
   },
@@ -320,7 +327,7 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: "#0a0a0a",
+    backgroundColor: colors.accent,
     justifyContent: "center",
     alignItems: "center",
     shadowColor: "#000",
@@ -330,22 +337,22 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   fabDark: {
-    backgroundColor: "#ffffff",
+    backgroundColor: colors.panel,
   },
   settingsSection: {
     padding: 16,
     borderTopWidth: 1,
-    borderTopColor: "#e5e5e5",
+    borderTopColor: colors.border,
     marginTop: 16,
     gap: 10,
   },
   settingsSectionDark: {
-    borderTopColor: "#1a1a1a",
+    borderTopColor: colors.border,
   },
   settingsTitle: {
     fontSize: 15,
     fontWeight: "700",
-    color: "#0a0a0a",
+    color: colors.text,
   },
   settingRow: {
     flexDirection: "row",
@@ -359,7 +366,7 @@ const styles = StyleSheet.create({
   },
   settingText: {
     fontSize: 14,
-    color: "#0a0a0a",
+    color: colors.text,
   },
   pagePicker: {
     flexDirection: "row",
@@ -370,31 +377,32 @@ const styles = StyleSheet.create({
     paddingVertical: 5,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: "#e5e5e5",
-    backgroundColor: "#f5f5f5",
+    borderColor: colors.border,
+    backgroundColor: colors.panelAlt,
   },
   pageOptionDark: {
-    borderColor: "#2a2a2a",
-    backgroundColor: "#1a1a1a",
+    borderColor: colors.border,
+    backgroundColor: colors.panel,
   },
   pageOptionActive: {
-    backgroundColor: "#0a0a0a",
-    borderColor: "#0a0a0a",
+    backgroundColor: colors.bg,
+    borderColor: colors.text,
   },
   pageOptionActiveDark: {
-    backgroundColor: "#3b82f6",
-    borderColor: "#3b82f6",
+    backgroundColor: colors.accent,
+    borderColor: colors.accent,
   },
   pageOptionText: {
     fontSize: 13,
     fontWeight: "500",
-    color: "#666666",
+    color: colors.muted,
   },
   pageOptionTextActive: {
-    color: "#ffffff",
+    color: colors.text,
   },
   settingHint: {
     fontSize: 12,
-    color: "#999999",
+    color: colors.muted,
   },
-})
+  })
+}

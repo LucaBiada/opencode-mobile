@@ -19,6 +19,7 @@ export interface Theme {
   userBubble: string
   overlay: string
   accentSoft: string
+  successSoft: string
 }
 
 export const darkColors: Theme = {
@@ -38,6 +39,7 @@ export const darkColors: Theme = {
   userBubble: "#0D0D0E",
   overlay: "rgba(0,0,0,0.6)",
   accentSoft: "#2A2140",
+  successSoft: "#14251A",
 }
 
 export const lightColors: Theme = {
@@ -57,6 +59,7 @@ export const lightColors: Theme = {
   userBubble: "#E8E8EB",
   overlay: "rgba(0,0,0,0.35)",
   accentSoft: "#EDE9FE",
+  successSoft: "#ECFDF3",
 }
 
 export function useTheme(): Theme {

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import {
   View,
   Text,
@@ -26,6 +26,7 @@ import { hasTelemetryConsent, setTelemetryConsent } from "../../src/lib/telemetr
 import { PRIVACY_POLICY_URL } from "../../src/lib/links"
 import { CURRENT_VERSION, checkForUpdate, type AvailableUpdate } from "../../src/lib/update-check"
 import type { LocalePreference } from "../../src/lib/i18n/locale-resolve"
+import { useTheme, type Theme } from "../../src/theme"
 
 function SettingRow({
   icon,
@@ -42,10 +43,12 @@ function SettingRow({
   right?: React.ReactNode
   onPress?: () => void
 }) {
+  const colors = useTheme()
+  const styles = useMemo(() => createStyles(colors), [colors])
   const content = (
     <View style={[styles.settingRow, isDark && styles.settingRowDark]}>
       <View style={[styles.settingIcon, isDark && styles.settingIconDark]}>
-        <Ionicons name={icon} size={22} color={isDark ? "#ffffff" : "#0a0a0a"} />
+        <Ionicons name={icon} size={22} color={colors.text} />
       </View>
       <View style={styles.settingContent}>
         <Text style={[styles.settingLabel, isDark && styles.textDark]}>{label}</Text>
@@ -63,6 +66,8 @@ function SettingRow({
 }
 
 function SettingSection({ title, children, isDark }: { title: string; children: React.ReactNode; isDark: boolean }) {
+  const colors = useTheme()
+  const styles = useMemo(() => createStyles(colors), [colors])
   return (
     <View style={styles.section}>
       <Text style={[styles.sectionTitle, isDark && styles.sectionTitleDark]}>{title}</Text>
@@ -74,6 +79,8 @@ function SettingSection({ title, children, isDark }: { title: string; children: 
 export default function SettingsScreen() {
   const colorScheme = useColorScheme()
   const isDark = colorScheme === "dark"
+  const colors = useTheme()
+  const styles = useMemo(() => createStyles(colors), [colors])
   const { t } = useTranslation()
 
   const { settings, hasBiometrics, updateSettings, lock } = useAuth()
@@ -324,13 +331,14 @@ export default function SettingsScreen() {
   )
 }
 
-const styles = StyleSheet.create({
+function createStyles(colors: Theme) {
+  return StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f5f5f5",
+    backgroundColor: colors.panelAlt,
   },
   containerDark: {
-    backgroundColor: "#0a0a0a",
+    backgroundColor: colors.bg,
   },
   content: {
     paddingBottom: 32,
@@ -341,23 +349,23 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 13,
     fontWeight: "600",
-    color: "#666666",
+    color: colors.muted,
     marginLeft: 16,
     marginBottom: 8,
     textTransform: "uppercase",
   },
   sectionTitleDark: {
-    color: "#888888",
+    color: colors.muted,
   },
   sectionContent: {
-    backgroundColor: "#ffffff",
+    backgroundColor: colors.panel,
     borderTopWidth: 1,
     borderBottomWidth: 1,
-    borderColor: "#e5e5e5",
+    borderColor: colors.border,
   },
   sectionContentDark: {
-    backgroundColor: "#1a1a1a",
-    borderColor: "#2a2a2a",
+    backgroundColor: colors.panel,
+    borderColor: colors.border,
   },
   settingRow: {
     flexDirection: "row",
@@ -365,40 +373,40 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 16,
     borderBottomWidth: 1,
-    borderBottomColor: "#e5e5e5",
+    borderBottomColor: colors.border,
   },
   settingRowDark: {
-    borderBottomColor: "#2a2a2a",
+    borderBottomColor: colors.border,
   },
   settingIcon: {
     width: 36,
     height: 36,
     borderRadius: 8,
-    backgroundColor: "#f5f5f5",
+    backgroundColor: colors.panelAlt,
     justifyContent: "center",
     alignItems: "center",
     marginRight: 12,
   },
   settingIconDark: {
-    backgroundColor: "#2a2a2a",
+    backgroundColor: colors.panelAlt,
   },
   settingContent: {
     flex: 1,
   },
   settingLabel: {
     fontSize: 16,
-    color: "#0a0a0a",
+    color: colors.text,
   },
   textDark: {
-    color: "#ffffff",
+    color: colors.text,
   },
   settingDescription: {
     fontSize: 13,
-    color: "#666666",
+    color: colors.muted,
     marginTop: 2,
   },
   metaDark: {
-    color: "#888888",
+    color: colors.muted,
   },
   footer: {
     alignItems: "center",
@@ -406,7 +414,8 @@ const styles = StyleSheet.create({
   },
   footerText: {
     fontSize: 13,
-    color: "#999999",
+    color: colors.muted,
     textAlign: "center",
   },
-})
+  })
+}

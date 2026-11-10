@@ -15,7 +15,7 @@ import { router, Stack, useLocalSearchParams } from "expo-router"
 import { Ionicons } from "@expo/vector-icons"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
 
-import { PhoneMessage } from "../../src/components/phone/PhoneMessage"
+import { MessageBubble } from "../../src/components/chat/MessageBubble"
 import { useTheme, type Theme } from "../../src/theme"
 import { phoneEngine } from "../../src/engines/phone/engine"
 import type { Event, Message, Part } from "../../src/lib/sdk"
@@ -206,7 +206,7 @@ export default function PhoneChatScreen() {
           </View>
         ) : (
           messages.map((message) => (
-            <PhoneMessage key={message.id} message={message} parts={parts[message.id] ?? []} />
+            <MessageBubble key={message.id} message={message} parts={parts[message.id] ?? []} onEdit={undefined} />
           ))
         )}
         {sending && messages.length > 0 ? (

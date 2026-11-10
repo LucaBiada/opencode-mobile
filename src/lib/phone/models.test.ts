@@ -31,6 +31,20 @@ test("parseModels drops entries without an id", () => {
   assert.deepEqual(models, [{ id: "ok", name: "ok" }])
 })
 
+test("parseModels drops non-chat entries that declare a task", () => {
+  const models = parseModels({
+    data: [
+      { id: "text-model", task: "text-generation" },
+      { id: "sdxl", task: "text-to-image" },
+      { id: "no-task" },
+    ],
+  })
+  assert.deepEqual(models, [
+    { id: "text-model", name: "text-model" },
+    { id: "no-task", name: "no-task" },
+  ])
+})
+
 test("parseModels tolerates an unexpected payload", () => {
   assert.deepEqual(parseModels(null), [])
   assert.deepEqual(parseModels({ error: "nope" }), [])

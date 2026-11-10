@@ -1,6 +1,7 @@
 import * as SQLite from "expo-sqlite"
 
 import type { Message, MessageWithParts, Part, Session } from "../../lib/sdk"
+import type { Provider } from "../../lib/phone/providers"
 
 // Phone-mode sessions live on the device. They are kept in their own tables so
 // nothing from remote mode (which caches server state) can collide with them.
@@ -21,8 +22,19 @@ async function init(): Promise<SQLite.SQLiteDatabase> {
       id TEXT PRIMARY KEY NOT NULL,
       title TEXT NOT NULL,
       model TEXT NOT NULL,
+      provider_id TEXT NOT NULL DEFAULT 'opencode-go',
       created_at INTEGER NOT NULL,
       updated_at INTEGER NOT NULL
+    );
+    CREATE TABLE IF NOT EXISTS phone_providers (
+      id TEXT PRIMARY KEY NOT NULL,
+      name TEXT NOT NULL,
+      base_url TEXT NOT NULL,
+      models_url TEXT NOT NULL,
+      format TEXT NOT NULL,
+      requires_key INTEGER NOT NULL,
+      tools INTEGER NOT NULL,
+      builtin INTEGER NOT NULL
     );
     CREATE TABLE IF NOT EXISTS phone_messages (
       id TEXT PRIMARY KEY NOT NULL,
@@ -44,6 +56,11 @@ async function init(): Promise<SQLite.SQLiteDatabase> {
     );
     CREATE INDEX IF NOT EXISTS phone_parts_message ON phone_parts(message_id, seq);
   `)
+  // Sessions created before providers existed keep working against Go.
+  const columns = await db.getAllAsync<{ name: string }>("PRAGMA table_info(phone_sessions)")
+  if (!columns.some((column) => column.name === "provider_id")) {
+    await db.execAsync("ALTER TABLE phone_sessions ADD COLUMN provider_id TEXT NOT NULL DEFAULT 'opencode-go'")
+  }
   return db
 }
 
@@ -126,16 +143,92 @@ export async function getPhoneSession(sessionID: string): Promise<Session | null
   return row ? toSession(row) : null
 }
 
-export async function insertPhoneSession(session: Session, modelID: string): Promise<void> {
+export async function insertPhoneSession(session: Session, modelID: string, providerID = "opencode-go"): Promise<void> {
   const db = await open()
   await db.runAsync(
-    "INSERT INTO phone_sessions (id, title, model, created_at, updated_at) VALUES (?, ?, ?, ?, ?)",
+    "INSERT INTO phone_sessions (id, title, model, provider_id, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)",
     session.id,
     session.title,
     modelID,
+    providerID,
     session.time.created,
     session.time.updated,
   )
+}
+
+export async function getPhoneSessionConfig(sessionID: string): Promise<{ providerID: string; modelID: string }> {
+  const db = await open()
+  const row = await db.getFirstAsync<{ model: string; provider_id: string }>(
+    "SELECT model, provider_id FROM phone_sessions WHERE id = ?",
+    sessionID,
+  )
+  return { providerID: row?.provider_id ?? "opencode-go", modelID: row?.model ?? "deepseek-v4.1-flash" }
+}
+
+interface ProviderRow {
+  id: string
+  name: string
+  base_url: string
+  models_url: string
+  format: string
+  requires_key: number
+  tools: number
+  builtin: number
+}
+
+function toProvider(row: ProviderRow): Provider {
+  return {
+    id: row.id,
+    name: row.name,
+    baseURL: row.base_url,
+    modelsURL: row.models_url,
+    format: row.format as Provider["format"],
+    requiresKey: Boolean(row.requires_key),
+    tools: Boolean(row.tools),
+    builtin: Boolean(row.builtin),
+  }
+}
+
+export async function listProviders(): Promise<Provider[]> {
+  const db = await open()
+  const rows = await db.getAllAsync<ProviderRow>("SELECT * FROM phone_providers ORDER BY builtin DESC, name ASC")
+  return rows.map(toProvider)
+}
+
+export async function getProvider(id: string): Promise<Provider | null> {
+  const db = await open()
+  const row = await db.getFirstAsync<ProviderRow>("SELECT * FROM phone_providers WHERE id = ?", id)
+  return row ? toProvider(row) : null
+}
+
+export async function upsertProvider(provider: Provider): Promise<void> {
+  const db = await open()
+  await db.runAsync(
+    `INSERT OR REPLACE INTO phone_providers (id, name, base_url, models_url, format, requires_key, tools, builtin)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+    provider.id,
+    provider.name,
+    provider.baseURL,
+    provider.modelsURL,
+    provider.format,
+    provider.requiresKey ? 1 : 0,
+    provider.tools ? 1 : 0,
+    provider.builtin ? 1 : 0,
+  )
+}
+
+export async function deleteProvider(id: string): Promise<void> {
+  const db = await open()
+  await db.runAsync("DELETE FROM phone_providers WHERE id = ? AND builtin = 0", id)
+}
+
+// Presets are seeded once into the database so the UI can treat built-in and
+// user-added providers identically (edit, test, pick).
+export async function seedProviders(presets: Provider[]): Promise<void> {
+  const db = await open()
+  const row = await db.getFirstAsync<{ count: number }>("SELECT COUNT(*) AS count FROM phone_providers")
+  if ((row?.count ?? 0) > 0) return
+  for (const preset of presets) await upsertProvider(preset)
 }
 
 export async function touchPhoneSession(sessionID: string, patch: { title?: string; updated?: number } = {}): Promise<void> {

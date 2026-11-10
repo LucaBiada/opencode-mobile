@@ -24,6 +24,10 @@ export function parseModels(payload: unknown): GoModel[] {
     const value = row as Record<string, unknown>
     const id = typeof value.id === "string" ? value.id : typeof value.slug === "string" ? value.slug : null
     if (!id) continue
+    // Some OpenAI-compatible servers (Unsloth, LM Studio) list image models in
+    // the same endpoint. They are useless for chat and confuse the picker.
+    const task = typeof value.task === "string" ? value.task : null
+    if (task && task !== "text-generation" && task !== "chat-completion") continue
     const name = typeof value.name === "string" && value.name ? value.name : id
     models.push({ id, name })
   }

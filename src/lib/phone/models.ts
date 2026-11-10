@@ -2,20 +2,14 @@ import { fetch as expoFetch } from "expo/fetch"
 import AsyncStorage from "@react-native-async-storage/async-storage"
 
 import { parseModels, type GoModel } from "./models-parse"
+import type { Provider } from "./providers"
 
 export type { GoModel }
 
-// OpenCode Go is reached through per-API base URLs, not one shared prefix.
-// We only use the OpenAI chat-completions one for now: most Go models speak it,
-// and the remaining adapters can be added behind the same shape later.
-export const GO_BASE_URL = "https://opencode.ai/inference/go/openai/v1"
-export const GO_MODELS_URL = "https://opencode.ai/inference/go/v1/models"
-
-// Go asks clients to identify themselves and to send a stable session id so it
-// can route and cache prompts. Keep the version in the agent string.
+// Go asks clients to identify themselves. Keep the version in the agent string;
+// it is sent to every provider, which is harmless and useful in logs.
 export const GO_USER_AGENT = "devmote/0.5.0"
 
-const CACHE_KEY = "devmote_go_models"
 const CACHE_TTL_MS = 24 * 60 * 60 * 1000
 
 interface CachedModels {
@@ -23,25 +17,31 @@ interface CachedModels {
   models: GoModel[]
 }
 
-export async function fetchGoModels(apiKey: string): Promise<GoModel[]> {
-  const response = await expoFetch(GO_MODELS_URL, {
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "User-Agent": GO_USER_AGENT,
-    },
-  })
+function cacheKey(providerID: string): string {
+  return `devmote_models_${providerID}`
+}
+
+export async function fetchProviderModels(provider: Provider, apiKey?: string | null): Promise<GoModel[]> {
+  const headers: Record<string, string> = { "User-Agent": GO_USER_AGENT }
+  if (apiKey) headers.Authorization = `Bearer ${apiKey}`
+
+  const response = await expoFetch(provider.modelsURL, { headers })
   if (!response.ok) {
     const body = await response.text().catch(() => "")
     throw new Error(`models ${response.status}${body ? `: ${body.slice(0, 200)}` : ""}`)
   }
   const models = parseModels(await response.json())
-  await AsyncStorage.setItem(CACHE_KEY, JSON.stringify({ fetchedAt: Date.now(), models } satisfies CachedModels))
+  await AsyncStorage.setItem(cacheKey(provider.id), JSON.stringify({ fetchedAt: Date.now(), models } satisfies CachedModels))
   return models
 }
 
-export async function loadGoModels(apiKey: string, force = false): Promise<GoModel[]> {
+export async function loadProviderModels(
+  provider: Provider,
+  apiKey: string | null | undefined,
+  force = false,
+): Promise<GoModel[]> {
   if (!force) {
-    const cached = await AsyncStorage.getItem(CACHE_KEY)
+    const cached = await AsyncStorage.getItem(cacheKey(provider.id))
     if (cached) {
       try {
         const parsed = JSON.parse(cached) as CachedModels
@@ -51,9 +51,9 @@ export async function loadGoModels(apiKey: string, force = false): Promise<GoMod
       }
     }
   }
-  return fetchGoModels(apiKey)
+  return fetchProviderModels(provider, apiKey)
 }
 
-export async function clearGoModelsCache(): Promise<void> {
-  await AsyncStorage.removeItem(CACHE_KEY)
+export async function clearProviderModelsCache(providerID: string): Promise<void> {
+  await AsyncStorage.removeItem(cacheKey(providerID))
 }

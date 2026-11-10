@@ -36,8 +36,10 @@ export interface GetMessagesOptions {
 
 export interface CreateSessionOptions {
   title?: string
-  // Phone mode records which model the chat uses; remote engines ignore it.
+  // Phone mode records which model and provider the chat uses; remote engines
+  // ignore both.
   modelID?: string
+  providerID?: string
 }
 
 export interface Engine {

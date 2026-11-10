@@ -35,7 +35,7 @@ const ALLOWED_PERSISTED_KEYS = new Map<string, string>([
   ["FIRST_OPEN_KEY", "analytics: first-open flag"],
   ["CONSENT_KEY", "telemetry consent decision"],
   ["CHATWOOT_SOURCE_KEY", "support contact id issued by Chatwoot"],
-  ["GO_API_KEY", "user's OpenCode Go API key (bearer credential, Keystore)"],
+  ["`${PROVIDER_KEY_PREFIX}${providerID}`", "user's API key for a phone-mode provider (bearer credential, Keystore)"],
 ])
 
 const SRC = path.join(import.meta.dirname, "..")

@@ -2,13 +2,16 @@ import { stepCountIs, streamText, type ModelMessage } from "ai"
 
 import type { Engine, ProviderList, PromptInput } from "../types"
 import type { Event, Message, Part, Session } from "../../lib/sdk"
-import { getGoApiKey } from "../../lib/phone/key"
-import { phoneChatModel } from "../../lib/phone/provider"
+import { getProviderKey } from "../../lib/phone/key"
+import { providerModel } from "../../lib/phone/provider"
+import { DEFAULT_PROVIDER_ID, PRESETS } from "../../lib/phone/providers"
 import { createPhoneTools } from "./tools"
 import {
   completePhoneMessage,
   deletePhoneSession,
   getPhoneSession,
+  getPhoneSessionConfig,
+  getProvider,
   insertPhoneMessage,
   insertPhoneSession,
   listPhoneMessages,
@@ -26,6 +29,15 @@ const SYSTEM_PROMPT = [
   "Ask for approval-worthy changes normally: writes and edits are shown to the user for approval before they happen.",
   "If a task needs execution, make the change you can and tell the user what to run.",
   "Answer in the language the user writes in. Prefer short, concrete answers with code blocks where useful.",
+].join(" ")
+
+// Used when the chosen provider cannot do tool calls: better to say so than to
+// run a loop that fails halfway.
+const CHAT_ONLY_PROMPT = [
+  "You are Devmote, an AI assistant running on the user's Android phone.",
+  "You have no tools in this conversation: you cannot read files, run commands, or reach the network.",
+  "Answer from what you already know, and tell the user when a task needs a tool-capable model.",
+  "Answer in the language the user writes in.",
 ].join(" ")
 
 const MAX_STEPS = 25
@@ -92,6 +104,7 @@ export function createPhoneEngine(): Engine {
     createSession: async (opts) => {
       const now = Date.now()
       const modelID = opts?.modelID ?? "deepseek-v4.1-flash"
+      const providerID = opts?.providerID ?? DEFAULT_PROVIDER_ID
       const session: Session = {
         id: id("p_ses"),
         slug: "",
@@ -102,7 +115,7 @@ export function createPhoneEngine(): Engine {
         time: { created: now, updated: now },
       }
       session.slug = session.id
-      await insertPhoneSession(session, modelID)
+      await insertPhoneSession(session, modelID, providerID)
       emit({ type: "session.updated", properties: { info: session } })
       return session
     },
@@ -113,14 +126,16 @@ export function createPhoneEngine(): Engine {
     getMessages: (sessionID) => listPhoneMessages(sessionID),
 
     prompt: async (sessionID, input: PromptInput) => {
-      const apiKey = await getGoApiKey()
-      if (!apiKey) throw new Error("Add your OpenCode Go API key in Settings first.")
+      const session = await engine.getSession(sessionID)
+      const config = await getPhoneSessionConfig(sessionID)
+      const provider =
+        (await getProvider(config.providerID)) ?? PRESETS.find((preset) => preset.id === config.providerID) ?? PRESETS[0]
+      const modelID = input.model?.modelID ?? config.modelID
+      const apiKey = provider.requiresKey ? await getProviderKey(provider.id) : null
+      if (provider.requiresKey && !apiKey) throw new Error(`Add an API key for ${provider.name} in Settings.`)
 
       const text = textOf(input.parts)
       if (!text) return
-
-      const session = await engine.getSession(sessionID)
-      const modelID = input.model?.modelID ?? session.version
 
       const created = Date.now()
       const user: Message = {
@@ -169,13 +184,13 @@ export function createPhoneEngine(): Engine {
 
       try {
         const result = streamText({
-          model: phoneChatModel({ apiKey, modelID, sessionID }),
-          system: SYSTEM_PROMPT,
+          model: providerModel({ provider, modelID, sessionID, apiKey }),
+          system: provider.tools ? SYSTEM_PROMPT : CHAT_ONLY_PROMPT,
           messages: history,
-          tools: createPhoneTools(sessionID, approvalGate(sessionID)),
+          tools: provider.tools ? createPhoneTools(sessionID, approvalGate(sessionID)) : undefined,
           abortSignal: controller.signal,
           maxRetries: 1,
-          stopWhen: stepCountIs(MAX_STEPS),
+          stopWhen: stepCountIs(provider.tools ? MAX_STEPS : 1),
         })
 
         let textBuffer = ""

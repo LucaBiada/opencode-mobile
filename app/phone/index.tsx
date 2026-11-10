@@ -2,8 +2,6 @@ import { useCallback, useState } from "react"
 import {
   ActivityIndicator,
   Alert,
-  KeyboardAvoidingView,
-  Platform,
   ScrollView,
   StyleSheet,
   Text,
@@ -12,41 +10,69 @@ import {
   useColorScheme,
   View,
 } from "react-native"
+import AsyncStorage from "@react-native-async-storage/async-storage"
 import { router, Stack, useFocusEffect } from "expo-router"
 import { Ionicons } from "@expo/vector-icons"
 import { useTranslation } from "react-i18next"
 
 import type { Session } from "../../src/lib/sdk"
-import { getGoApiKey, setGoApiKey } from "../../src/lib/phone/key"
-import { loadGoModels, type GoModel } from "../../src/lib/phone/models"
+import { getProviderKey, setProviderKey } from "../../src/lib/phone/key"
+import { loadProviderModels, type GoModel } from "../../src/lib/phone/models"
+import {
+  DEFAULT_PROVIDER_ID,
+  PRESETS,
+  modelsURLFor,
+  providerProblem,
+  type Provider,
+} from "../../src/lib/phone/providers"
+import { listProviders, seedProviders, upsertProvider } from "../../src/engines/phone/store"
 import { phoneEngine } from "../../src/engines/phone/engine"
 
-const DEFAULT_MODEL = "deepseek-v4.1-flash"
+const LAST_PROVIDER_KEY = "devmote_last_provider"
 
 export default function PhoneModeScreen() {
   const isDark = useColorScheme() === "dark"
   const { t } = useTranslation()
 
+  const [providers, setProviders] = useState<Provider[]>([])
+  const [providerID, setProviderID] = useState(DEFAULT_PROVIDER_ID)
+  const [baseURL, setBaseURL] = useState("")
   const [keyInput, setKeyInput] = useState("")
   const [hasKey, setHasKey] = useState(false)
   const [models, setModels] = useState<GoModel[]>([])
-  const [modelID, setModelID] = useState(DEFAULT_MODEL)
+  const [modelID, setModelID] = useState("")
   const [sessions, setSessions] = useState<Session[]>([])
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const refresh = useCallback(async () => {
-    const key = await getGoApiKey()
+  const selectProvider = useCallback(async (provider: Provider) => {
+    setProviderID(provider.id)
+    setBaseURL(provider.baseURL)
+    setModels([])
+    setModelID("")
+    setError(null)
+    await AsyncStorage.setItem(LAST_PROVIDER_KEY, provider.id)
+    const key = await getProviderKey(provider.id)
     setHasKey(Boolean(key))
-    setSessions(await phoneEngine.listSessions())
-    if (!key) return
+    if (provider.requiresKey && !key) return
     try {
-      setModels(await loadGoModels(key))
-      setError(null)
+      const list = await loadProviderModels(provider, key)
+      setModels(list)
+      setModelID(list[0]?.id ?? "")
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err))
     }
   }, [])
+
+  const refresh = useCallback(async () => {
+    await seedProviders(PRESETS)
+    const list = await listProviders()
+    setProviders(list)
+    const saved = (await AsyncStorage.getItem(LAST_PROVIDER_KEY)) ?? DEFAULT_PROVIDER_ID
+    const current = list.find((provider) => provider.id === saved) ?? list[0]
+    if (current) await selectProvider(current)
+    setSessions(await phoneEngine.listSessions())
+  }, [selectProvider])
 
   useFocusEffect(
     useCallback(() => {
@@ -54,16 +80,27 @@ export default function PhoneModeScreen() {
     }, [refresh]),
   )
 
-  const saveKey = async () => {
+  const saveProvider = async () => {
+    const current = providers.find((provider) => provider.id === providerID)
+    if (!current) return
+    const next: Provider = { ...current, baseURL: baseURL.trim(), modelsURL: modelsURLFor(baseURL.trim()) }
+    const problem = providerProblem(next)
+    if (problem) {
+      setError(problem)
+      return
+    }
     setBusy(true)
     setError(null)
     try {
-      await setGoApiKey(keyInput)
-      const key = keyInput.trim()
-      setHasKey(Boolean(key))
-      if (key) setModels(await loadGoModels(key, true))
+      await upsertProvider(next)
+      if (keyInput.trim()) await setProviderKey(next.id, keyInput.trim())
       setKeyInput("")
-      if (!key) setModels([])
+      setHasKey(Boolean(await getProviderKey(next.id)))
+      setProviders(await listProviders())
+      const key = await getProviderKey(next.id)
+      const list = await loadProviderModels(next, key, true)
+      setModels(list)
+      setModelID(list[0]?.id ?? "")
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err))
     } finally {
@@ -72,9 +109,10 @@ export default function PhoneModeScreen() {
   }
 
   const startChat = async () => {
+    if (!modelID) return
     setBusy(true)
     try {
-      const session = await phoneEngine.createSession({ title: "New chat", modelID })
+      const session = await phoneEngine.createSession({ title: "New chat", providerID, modelID })
       setSessions(await phoneEngine.listSessions())
       router.push({ pathname: "/phone/[id]", params: { id: session.id } })
     } catch (err) {
@@ -98,63 +136,106 @@ export default function PhoneModeScreen() {
     ])
   }
 
+  const current = providers.find((provider) => provider.id === providerID)
+
   return (
     <View style={[styles.container, isDark && styles.containerDark]}>
       <Stack.Screen options={{ title: "Phone mode" }} />
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
         <Text style={[styles.heading, isDark && styles.textDark]}>Chat with no computer</Text>
         <Text style={[styles.sub, isDark && styles.hintDark]}>
-          Uses your OpenCode Go key. Sessions are stored on this phone and never leave it except as
-          prompts to Go.
+          Point the app at a cloud API or a model server on your network. Sessions stay on this phone.
         </Text>
 
-        <Text style={[styles.label, isDark && styles.textDark]}>OpenCode Go API key</Text>
-        <View style={[styles.keyRow]}>
-          <TextInput
-            style={[styles.input, isDark && styles.inputDark]}
-            value={keyInput}
-            onChangeText={setKeyInput}
-            placeholder={hasKey ? "Key saved — paste a new one to replace" : "sk-…"}
-            placeholderTextColor={isDark ? "#666" : "#999"}
-            autoCapitalize="none"
-            autoCorrect={false}
-            secureTextEntry
-            testID="go-key-input"
-          />
+        <Text style={[styles.label, isDark && styles.textDark]}>Provider</Text>
+        <View style={styles.models}>
+          {providers.map((provider) => {
+            const active = provider.id === providerID
+            return (
+              <TouchableOpacity
+                key={provider.id}
+                style={[styles.modelChip, active && styles.modelChipActive]}
+                onPress={() => void selectProvider(provider)}
+              >
+                <Text style={[styles.modelText, active && styles.modelTextActive]}>{provider.name}</Text>
+              </TouchableOpacity>
+            )
+          })}
         </View>
-        <TouchableOpacity style={[styles.button, busy && styles.buttonDisabled]} onPress={saveKey} disabled={busy} testID="go-key-save">
-          {busy ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>{hasKey ? "Update key" : "Save key"}</Text>}
-        </TouchableOpacity>
-        {error ? <Text style={styles.error}>{error}</Text> : null}
-        {hasKey && models.length > 0 ? (
+
+        {current ? (
           <>
-            <Text style={[styles.label, styles.spaced, isDark && styles.textDark]}>Model</Text>
-            <View style={styles.models}>
-              {models.map((model) => {
-                const active = model.id === modelID
-                return (
-                  <TouchableOpacity
-                    key={model.id}
-                    style={[styles.modelChip, active && styles.modelChipActive]}
-                    onPress={() => setModelID(model.id)}
-                  >
-                    <Text style={[styles.modelText, active && styles.modelTextActive]}>{model.name}</Text>
-                  </TouchableOpacity>
-                )
-              })}
-            </View>
+            <Text style={[styles.label, styles.spaced, isDark && styles.textDark]}>Server URL</Text>
+            <TextInput
+              style={[styles.input, isDark && styles.inputDark]}
+              value={baseURL}
+              onChangeText={setBaseURL}
+              autoCapitalize="none"
+              autoCorrect={false}
+              keyboardType="url"
+              placeholder="http://192.168.1.9:11434/v1"
+              placeholderTextColor={isDark ? "#666" : "#999"}
+              testID="provider-url"
+            />
+            {current.builtin && providerID !== DEFAULT_PROVIDER_ID ? (
+              <Text style={[styles.hint, isDark && styles.hintDark]}>
+                On a phone, localhost is the phone. Use your computer's LAN address.
+              </Text>
+            ) : null}
+
+            {current.requiresKey ? (
+              <>
+                <Text style={[styles.label, styles.spaced, isDark && styles.textDark]}>API key</Text>
+                <TextInput
+                  style={[styles.input, isDark && styles.inputDark]}
+                  value={keyInput}
+                  onChangeText={setKeyInput}
+                  placeholder={hasKey ? "Key saved — paste a new one to replace" : "oc_sk_…"}
+                  placeholderTextColor={isDark ? "#666" : "#999"}
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  secureTextEntry
+                  testID="provider-key"
+                />
+              </>
+            ) : null}
+
+            <TouchableOpacity style={[styles.button, busy && styles.buttonDisabled]} onPress={saveProvider} disabled={busy} testID="provider-save">
+              {busy ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>Save & test</Text>}
+            </TouchableOpacity>
+            {error ? <Text style={styles.error}>{error}</Text> : null}
+
+            {models.length > 0 ? (
+              <>
+                <Text style={[styles.label, styles.spaced, isDark && styles.textDark]}>Model</Text>
+                <View style={styles.models}>
+                  {models.map((model) => {
+                    const active = model.id === modelID
+                    return (
+                      <TouchableOpacity
+                        key={model.id}
+                        style={[styles.modelChip, active && styles.modelChipActive]}
+                        onPress={() => setModelID(model.id)}
+                      >
+                        <Text style={[styles.modelText, active && styles.modelTextActive]}>{model.name}</Text>
+                      </TouchableOpacity>
+                    )
+                  })}
+                </View>
+              </>
+            ) : null}
+
+            <TouchableOpacity
+              style={[styles.button, styles.primary, (!modelID || busy) && styles.buttonDisabled]}
+              onPress={startChat}
+              disabled={!modelID || busy}
+              testID="start-phone-chat"
+            >
+              <Ionicons name="add" size={18} color="#fff" />
+              <Text style={styles.buttonText}>New phone chat</Text>
+            </TouchableOpacity>
           </>
         ) : null}
-
-        <TouchableOpacity
-          style={[styles.button, styles.primary, (!hasKey || busy) && styles.buttonDisabled]}
-          onPress={startChat}
-          disabled={!hasKey || busy}
-          testID="start-phone-chat"
-        >
-          <Ionicons name="add" size={18} color="#fff" />
-          <Text style={styles.buttonText}>New phone chat</Text>
-        </TouchableOpacity>
 
         <Text style={[styles.label, styles.spaced, isDark && styles.textDark]}>On this phone</Text>
         {sessions.length === 0 ? (
@@ -172,7 +253,7 @@ export default function PhoneModeScreen() {
                   {session.title}
                 </Text>
                 <Text style={[styles.sessionMeta, isDark && styles.hintDark]}>
-                  {new Date(session.time.updated).toLocaleString()}
+                  {session.version} · {new Date(session.time.updated).toLocaleString()}
                 </Text>
               </View>
               <Ionicons name="chevron-forward" size={18} color={isDark ? "#888" : "#666"} />
@@ -192,17 +273,18 @@ const styles = StyleSheet.create({
   sub: { fontSize: 13, color: "#666", marginTop: 6, lineHeight: 19 },
   label: { fontSize: 13, fontWeight: "600", color: "#0a0a0a", marginTop: 20 },
   spaced: { marginTop: 28 },
-  keyRow: { marginTop: 8 },
   input: {
     borderWidth: 1,
     borderColor: "#e2e2e2",
     borderRadius: 10,
     paddingHorizontal: 12,
-    paddingVertical: Platform.OS === "ios" ? 12 : 9,
+    paddingVertical: 9,
     fontSize: 15,
     color: "#0a0a0a",
+    marginTop: 8,
   },
   inputDark: { borderColor: "#2a2a2a", backgroundColor: "#141414", color: "#fff" },
+  hint: { fontSize: 12, color: "#666", marginTop: 6 },
   button: {
     flexDirection: "row",
     alignItems: "center",

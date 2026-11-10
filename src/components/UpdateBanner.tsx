@@ -11,12 +11,21 @@
  */
 
 import { useCallback, useEffect, useState } from "react"
+import { useMemo } from "react"
 import { View, Text, TouchableOpacity, StyleSheet, Linking } from "react-native"
 import { Ionicons } from "@expo/vector-icons"
 import { useTranslation } from "react-i18next"
 import { checkForUpdate, dismissUpdate, CURRENT_VERSION, type AvailableUpdate } from "../lib/update-check"
+import { useTheme, type Theme } from "../theme"
+
+function useThemedStyles() {
+  const colors = useTheme()
+  return useMemo(() => createStyles(colors), [colors])
+}
 
 export function UpdateBanner({ isDark }: { isDark: boolean }) {
+  const styles = useThemedStyles()
+  const colors = useTheme()
   const { t } = useTranslation()
   const [update, setUpdate] = useState<AvailableUpdate | null>(null)
 
@@ -49,7 +58,7 @@ export function UpdateBanner({ isDark }: { isDark: boolean }) {
 
   return (
     <View style={[styles.banner, isDark && styles.bannerDark]} testID="update-banner">
-      <Ionicons name="arrow-up-circle" size={20} color={isDark ? "#7dd3fc" : "#0369a1"} />
+      <Ionicons name="arrow-up-circle" size={20} color={isDark ? colors.accent : colors.accent} />
       <View style={styles.text}>
         <Text style={[styles.title, isDark && styles.titleDark]}>{t("update.available")}</Text>
         <Text style={[styles.body, isDark && styles.bodyDark]} numberOfLines={1}>
@@ -60,23 +69,24 @@ export function UpdateBanner({ isDark }: { isDark: boolean }) {
         <Text style={[styles.action, isDark && styles.actionDark]}>{t("update.action")}</Text>
       </TouchableOpacity>
       <TouchableOpacity onPress={onDismiss} testID="update-banner-dismiss" hitSlop={8}>
-        <Ionicons name="close" size={18} color={isDark ? "#94a3b8" : "#64748b"} />
+        <Ionicons name="close" size={18} color={isDark ? colors.muted : "#64748b"} />
       </TouchableOpacity>
     </View>
   )
 }
 
-const styles = StyleSheet.create({
+function createStyles(colors: Theme) {
+  return StyleSheet.create({
   banner: {
     flexDirection: "row",
     alignItems: "center",
     gap: 10,
     paddingHorizontal: 16,
     paddingVertical: 10,
-    backgroundColor: "#e0f2fe",
+    backgroundColor: colors.accentSoft,
   },
   bannerDark: {
-    backgroundColor: "#0c2b3d",
+    backgroundColor: colors.accentSoft,
   },
   text: {
     flex: 1,
@@ -84,24 +94,25 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 14,
     fontWeight: "600",
-    color: "#0c4a6e",
+    color: colors.text,
   },
   titleDark: {
-    color: "#e0f2fe",
+    color: colors.accentSoft,
   },
   body: {
     fontSize: 12,
-    color: "#0369a1",
+    color: colors.accent,
   },
   bodyDark: {
-    color: "#94a3b8",
+    color: colors.muted,
   },
   action: {
     fontSize: 14,
     fontWeight: "600",
-    color: "#0369a1",
+    color: colors.accent,
   },
   actionDark: {
-    color: "#7dd3fc",
+    color: colors.accent,
   },
-})
+  })
+}

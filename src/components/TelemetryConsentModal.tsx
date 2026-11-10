@@ -9,9 +9,11 @@
  * Matches the app's existing Settings screen visual conventions.
  */
 
+import { useMemo } from "react"
 import { View, Text, TouchableOpacity, StyleSheet, useColorScheme, Modal, Linking } from "react-native"
 import { Ionicons } from "@expo/vector-icons"
 import { useTranslation } from "react-i18next"
+import { useTheme, type Theme } from "../theme"
 import { PRIVACY_POLICY_URL } from "../lib/links"
 
 interface Props {
@@ -20,7 +22,14 @@ interface Props {
   onDecline: () => void
 }
 
+function useThemedStyles() {
+  const colors = useTheme()
+  return useMemo(() => createStyles(colors), [colors])
+}
+
 export function TelemetryConsentModal({ visible, onAllow, onDecline }: Props) {
+  const styles = useThemedStyles()
+  const colors = useTheme()
   const colorScheme = useColorScheme()
   const isDark = colorScheme === "dark"
   const { t } = useTranslation()
@@ -31,7 +40,7 @@ export function TelemetryConsentModal({ visible, onAllow, onDecline }: Props) {
         <View style={[styles.card, isDark && styles.cardDark]} testID="telemetry-consent-card">
           {/* Icon */}
           <View style={[styles.iconWrap, isDark && styles.iconWrapDark]}>
-            <Ionicons name="bug-outline" size={40} color="#3b82f6" />
+            <Ionicons name="bug-outline" size={40} color={colors.accent} />
           </View>
 
           {/* Title */}
@@ -114,6 +123,7 @@ function BulletRow({
   isDark: boolean
   positive: boolean
 }) {
+  const styles = useThemedStyles()
   return (
     <View style={styles.bulletRow}>
       <Ionicons
@@ -127,7 +137,8 @@ function BulletRow({
   )
 }
 
-const styles = StyleSheet.create({
+function createStyles(colors: Theme) {
+  return StyleSheet.create({
   overlay: {
     flex: 1,
     backgroundColor: "rgba(0,0,0,0.6)",
@@ -136,7 +147,7 @@ const styles = StyleSheet.create({
     padding: 24,
   },
   card: {
-    backgroundColor: "#ffffff",
+    backgroundColor: colors.panel,
     borderRadius: 20,
     padding: 28,
     width: "100%",
@@ -148,40 +159,40 @@ const styles = StyleSheet.create({
     elevation: 10,
   },
   cardDark: {
-    backgroundColor: "#1a1a1a",
+    backgroundColor: colors.panelAlt,
   },
   iconWrap: {
     width: 72,
     height: 72,
     borderRadius: 18,
-    backgroundColor: "#eff6ff",
+    backgroundColor: colors.accentSoft,
     justifyContent: "center",
     alignItems: "center",
     alignSelf: "center",
     marginBottom: 16,
   },
   iconWrapDark: {
-    backgroundColor: "#1e293b",
+    backgroundColor: colors.accentSoft,
   },
   title: {
     fontSize: 22,
     fontWeight: "700",
-    color: "#0a0a0a",
+    color: colors.text,
     textAlign: "center",
     marginBottom: 12,
   },
   textDark: {
-    color: "#f8fafc",
+    color: colors.text,
   },
   body: {
     fontSize: 15,
-    color: "#374151",
+    color: colors.textDim,
     textAlign: "center",
     lineHeight: 22,
     marginBottom: 20,
   },
   bodyDark: {
-    color: "#94a3b8",
+    color: colors.muted,
   },
   bullets: {
     marginBottom: 16,
@@ -198,12 +209,12 @@ const styles = StyleSheet.create({
   },
   bulletText: {
     fontSize: 14,
-    color: "#374151",
+    color: colors.textDim,
     flex: 1,
     lineHeight: 20,
   },
   privacyLink: {
-    color: "#3b82f6",
+    color: colors.accent,
     fontSize: 14,
     textAlign: "center",
     marginBottom: 24,
@@ -222,33 +233,34 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   btnDecline: {
-    backgroundColor: "#f1f5f9",
+    backgroundColor: colors.panelAlt,
   },
   btnDeclineDark: {
-    backgroundColor: "#2a2a2a",
+    backgroundColor: colors.panel,
   },
   btnDeclineText: {
-    color: "#374151",
+    color: colors.textDim,
     fontWeight: "600",
     fontSize: 16,
   },
   btnDeclineTextDark: {
-    color: "#94a3b8",
+    color: colors.muted,
   },
   btnAllow: {
-    backgroundColor: "#3b82f6",
+    backgroundColor: colors.accent,
   },
   btnAllowText: {
-    color: "#ffffff",
+    color: colors.text,
     fontWeight: "700",
     fontSize: 16,
   },
   footnote: {
     fontSize: 12,
-    color: "#9ca3af",
+    color: colors.muted,
     textAlign: "center",
   },
   footnoteDark: {
-    color: "#64748b",
+    color: colors.muted,
   },
-})
+  })
+}

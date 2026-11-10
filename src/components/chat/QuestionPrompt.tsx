@@ -1,7 +1,9 @@
 import { useRef, useState } from "react"
+import { useMemo } from "react"
 import { View, Text, TextInput, TouchableOpacity, StyleSheet } from "react-native"
 import { Ionicons } from "@expo/vector-icons"
 import { useTranslation } from "react-i18next"
+import { useTheme, type Theme } from "../../theme"
 
 interface QuestionOption {
   label: string
@@ -26,7 +28,13 @@ interface Props {
   onReject: () => void
 }
 
+function useThemedStyles() {
+  const colors = useTheme()
+  return useMemo(() => createStyles(colors), [colors])
+}
+
 export function QuestionPrompt({ request, isDark, onReply, onReject }: Props) {
+  const s = useThemedStyles()
   const { t } = useTranslation()
   const [answers, setAnswers] = useState<string[][]>(request.questions.map(() => []))
   const [custom, setCustom] = useState("")
@@ -156,14 +164,15 @@ export function QuestionPrompt({ request, isDark, onReply, onReject }: Props) {
   )
 }
 
-const s = StyleSheet.create({
+function createStyles(colors: Theme) {
+  return StyleSheet.create({
   card: {
     margin: 12,
     padding: 16,
-    backgroundColor: "#f5f3ff",
+    backgroundColor: colors.accentSoft,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: "#ede9fe",
+    borderColor: colors.border,
   },
   cardDark: { backgroundColor: "#1a1a2e", borderColor: "#2a2a3e" },
   header: { flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 8 },
@@ -176,9 +185,9 @@ const s = StyleSheet.create({
   option: {
     padding: 12,
     borderRadius: 8,
-    backgroundColor: "#ffffff",
+    backgroundColor: colors.panel,
     borderWidth: 1,
-    borderColor: "#e5e5e5",
+    borderColor: colors.border,
   },
   optionDark: { backgroundColor: "#2a2a2a", borderColor: "#3a3a3a" },
   optionSelected: { borderColor: "#8b5cf6", backgroundColor: "#f5f3ff" },
@@ -190,14 +199,14 @@ const s = StyleSheet.create({
   customRow: { flexDirection: "row", gap: 8 },
   customInput: {
     flex: 1,
-    backgroundColor: "#ffffff",
+    backgroundColor: colors.panel,
     borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: 10,
     fontSize: 14,
     borderWidth: 1,
-    borderColor: "#e5e5e5",
-    color: "#0a0a0a",
+    borderColor: colors.border,
+    color: colors.text,
   },
   customInputDark: { backgroundColor: "#2a2a2a", borderColor: "#3a3a3a", color: "#ffffff" },
   customSubmit: { justifyContent: "center", alignItems: "center", padding: 8 },
@@ -207,4 +216,5 @@ const s = StyleSheet.create({
   submitBtn: { backgroundColor: "#8b5cf6", paddingHorizontal: 20, paddingVertical: 10, borderRadius: 8 },
   submitBtnDark: { backgroundColor: "#7c3aed" },
   submitText: { color: "#ffffff", fontWeight: "600", fontSize: 14 },
-})
+  })
+}

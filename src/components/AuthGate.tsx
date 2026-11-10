@@ -1,6 +1,8 @@
 import { useEffect, type ReactNode } from "react"
+import { useMemo } from "react"
 import { View, Text, TouchableOpacity, StyleSheet, useColorScheme } from "react-native"
 import { Ionicons } from "@expo/vector-icons"
+import { useTheme, type Theme } from "../theme"
 import { useTranslation } from "react-i18next"
 import { useAuth } from "../stores/auth"
 
@@ -8,7 +10,13 @@ interface Props {
   children: ReactNode
 }
 
+function useThemedStyles() {
+  const colors = useTheme()
+  return useMemo(() => createStyles(colors), [colors])
+}
+
 export function AuthGate({ children }: Props) {
+  const styles = useThemedStyles()
   const colorScheme = useColorScheme()
   const isDark = colorScheme === "dark"
   const { t } = useTranslation()
@@ -61,15 +69,16 @@ export function AuthGate({ children }: Props) {
   )
 }
 
-const styles = StyleSheet.create({
+function createStyles(colors: Theme) {
+  return StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#ffffff",
+    backgroundColor: colors.panel,
     justifyContent: "center",
     alignItems: "center",
   },
   containerDark: {
-    backgroundColor: "#0a0a0a",
+    backgroundColor: colors.bg,
   },
   content: {
     alignItems: "center",
@@ -79,29 +88,29 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: "600",
     marginTop: 24,
-    color: "#0a0a0a",
+    color: colors.text,
   },
   textDark: {
-    color: "#ffffff",
+    color: colors.text,
   },
   subtitle: {
     fontSize: 16,
-    color: "#666666",
+    color: colors.muted,
     marginTop: 8,
     textAlign: "center",
   },
   subtitleDark: {
-    color: "#888888",
+    color: colors.muted,
   },
   error: {
-    color: "#ef4444",
+    color: colors.danger,
     marginTop: 16,
     fontSize: 14,
   },
   button: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#0a0a0a",
+    backgroundColor: colors.bg,
     paddingHorizontal: 32,
     paddingVertical: 16,
     borderRadius: 12,
@@ -109,14 +118,15 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   buttonDark: {
-    backgroundColor: "#ffffff",
+    backgroundColor: colors.panel,
   },
   buttonText: {
-    color: "#ffffff",
+    color: colors.text,
     fontSize: 18,
     fontWeight: "600",
   },
   buttonTextDark: {
-    color: "#0a0a0a",
+    color: colors.text,
   },
-})
+  })
+}

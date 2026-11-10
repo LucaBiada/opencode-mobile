@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useCallback, useMemo } from "react"
+﻿import { useEffect, useRef, useState, useCallback, useMemo } from "react"
 import {
   View,
   Text,
@@ -20,6 +20,7 @@ import * as ImagePicker from "expo-image-picker"
 import * as ImageManipulator from "expo-image-manipulator"
 import * as Clipboard from "expo-clipboard"
 import type BottomSheet from "@gorhom/bottom-sheet"
+
 import {
   MessageBubble,
   PermissionPrompt,
@@ -35,6 +36,7 @@ import {
   type Attachment,
 } from "../../src/components/chat"
 import { useSessions } from "../../src/stores/sessions"
+import { useTheme, type Theme } from "../../src/theme"
 import { useEvents, refreshPending } from "../../src/stores/events"
 import { useConnections } from "../../src/stores/connections"
 import { useAuth } from "../../src/stores/auth"
@@ -73,10 +75,17 @@ function getShortDir(dir?: string): string | null {
   return parts[parts.length - 1] || null
 }
 
+function useThemedStyles() {
+  const colors = useTheme()
+  return useMemo(() => createStyles(colors), [colors])
+}
+
 export default function SessionScreen() {
   const { id, directory } = useLocalSearchParams<{ id: string; directory?: string }>()
   const router = useRouter()
   const colorScheme = useColorScheme()
+  const colors = useTheme()
+  const s = useThemedStyles()
   const isDark = colorScheme === "dark"
   const insets = useSafeAreaInsets()
   const { t } = useTranslation()
@@ -602,26 +611,31 @@ export default function SessionScreen() {
   // "child already has a parent" crash (Sentry OPENCODE-MOBILE-6/-7).
   useEffect(() => {
     navigation.setOptions({
-      title: currentSession?.title || t("session.titleFallback"),
-      headerRight: () => (
-        <View style={s.headerRight}>
-          {shortDir && (
-            <View style={[s.dirBadge, isDark && s.dirBadgeDark]}>
-              <Ionicons name="folder-outline" size={14} color={isDark ? "#888888" : "#666666"} />
-              <Text style={[s.dirText, isDark && s.dirTextDark]}>{shortDir}</Text>
-            </View>
-          )}
-          <TouchableOpacity onPress={() => setShowInfo((v) => !v)} hitSlop={8}>
-            <Ionicons
-              name={showInfo ? "stats-chart" : "stats-chart-outline"}
-              size={20}
-              color={showInfo ? "#3b82f6" : isDark ? "#888888" : "#666666"}
-            />
-          </TouchableOpacity>
+      headerStyle: { backgroundColor: colors.bg },
+      headerShadowVisible: false,
+      headerTintColor: colors.text,
+      headerTitleAlign: "center",
+      headerTitle: () => (
+        <View style={s.headerTitle}>
+          <Text numberOfLines={1} style={s.headerTitleText}>
+            {currentSession?.title || t("session.titleFallback")}
+          </Text>
+          <Text numberOfLines={1} style={s.headerSubtitle}>
+            Remote{shortDir ? ` · ${shortDir}` : ""}
+          </Text>
         </View>
       ),
+      headerRight: () => (
+        <TouchableOpacity onPress={() => setShowInfo((v) => !v)} hitSlop={8}>
+          <Ionicons
+            name={showInfo ? "stats-chart" : "stats-chart-outline"}
+            size={20}
+            color={showInfo ? colors.accent : colors.muted}
+          />
+        </TouchableOpacity>
+      ),
     })
-  }, [navigation, currentSession?.title, shortDir, showInfo, isDark, t])
+  }, [navigation, currentSession?.title, shortDir, showInfo, colors, t])
 
   return (
     <>
@@ -847,7 +861,7 @@ export default function SessionScreen() {
                     ? t("session.input.placeholderFollowUp")
                     : t("session.input.placeholderDefault")
               }
-              placeholderTextColor={speech.listening ? "#ef4444" : isDark ? "#666666" : "#999999"}
+              placeholderTextColor={speech.listening ? colors.danger : isDark ? "#666666" : "#999999"}
               value={speech.listening ? speech.transcript : input}
               onChangeText={speech.listening ? undefined : setInput}
               editable={!speech.listening}
@@ -904,7 +918,8 @@ export default function SessionScreen() {
   )
 }
 
-const s = StyleSheet.create({
+function createStyles(colors: Theme) {
+  return StyleSheet.create({
   container: { flex: 1, backgroundColor: "#ffffff" },
   containerDark: { backgroundColor: "#0a0a0a" },
   loading: { flex: 1, justifyContent: "center", alignItems: "center" },
@@ -921,7 +936,7 @@ const s = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: "#ffffff",
+    backgroundColor: colors.panel,
     justifyContent: "center",
     alignItems: "center",
     shadowColor: "#000",
@@ -967,7 +982,7 @@ const s = StyleSheet.create({
     paddingVertical: 6,
     borderTopWidth: 1,
     borderTopColor: "#e5e5e5",
-    backgroundColor: "#ffffff",
+    backgroundColor: colors.panel,
   },
   toolbarDark: { borderTopColor: "#1a1a1a", backgroundColor: "#0a0a0a" },
   agentChip: {
@@ -985,7 +1000,7 @@ const s = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 4,
-    backgroundColor: "#f5f5f5",
+    backgroundColor: colors.panelAlt,
     borderRadius: 12,
     paddingHorizontal: 10,
     paddingVertical: 4,
@@ -998,7 +1013,7 @@ const s = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 4,
-    backgroundColor: "#f5f5f5",
+    backgroundColor: colors.panelAlt,
     borderRadius: 12,
     paddingHorizontal: 10,
     paddingVertical: 4,
@@ -1013,7 +1028,7 @@ const s = StyleSheet.create({
     padding: 12,
     borderTopWidth: 1,
     borderTopColor: "#e5e5e5",
-    backgroundColor: "#ffffff",
+    backgroundColor: colors.panel,
   },
   inputContainerDark: { borderTopColor: "#1a1a1a", backgroundColor: "#0a0a0a" },
   inputRow: {
@@ -1028,21 +1043,21 @@ const s = StyleSheet.create({
   },
   input: {
     flex: 1,
-    backgroundColor: "#f5f5f5",
+    backgroundColor: colors.panelAlt,
     borderRadius: 20,
     paddingHorizontal: 16,
     paddingVertical: 10,
     fontSize: 16,
     maxHeight: 120,
-    color: "#0a0a0a",
+    color: colors.text,
   },
   inputDark: { backgroundColor: "#1a1a1a", color: "#ffffff" },
-  inputListening: { borderWidth: 1, borderColor: "#ef4444" },
+  inputListening: { borderWidth: 1, borderColor: colors.danger },
   sendBtn: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: "#0a0a0a",
+    backgroundColor: colors.bg,
     justifyContent: "center",
     alignItems: "center",
     marginLeft: 8,
@@ -1060,7 +1075,7 @@ const s = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: "#ef4444",
+    backgroundColor: colors.danger,
     justifyContent: "center",
     alignItems: "center",
     marginLeft: 8,
@@ -1069,7 +1084,7 @@ const s = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: "#ef4444",
+    backgroundColor: colors.danger,
     justifyContent: "center",
     alignItems: "center",
     marginLeft: 8,
@@ -1077,11 +1092,14 @@ const s = StyleSheet.create({
 
   // Header
   headerRight: { flexDirection: "row", alignItems: "center", gap: 8 },
+  headerTitle: { alignItems: "center", maxWidth: 220 },
+  headerTitleText: { color: colors.text, fontSize: 16, fontWeight: "600" },
+  headerSubtitle: { color: colors.muted, fontSize: 13, marginTop: 1 },
   dirBadge: {
     flexDirection: "row",
     alignItems: "center",
     gap: 4,
-    backgroundColor: "#f5f5f5",
+    backgroundColor: colors.panelAlt,
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 6,
@@ -1102,7 +1120,7 @@ const s = StyleSheet.create({
 
   // Session error banner (agent run failed)
   bannerError: {
-    backgroundColor: "#991b1b",
+    backgroundColor: colors.danger,
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
@@ -1113,9 +1131,10 @@ const s = StyleSheet.create({
 
   // Pending revert (edit message) banner
   bannerRevert: {
-    backgroundColor: "#1e3a8a",
+    backgroundColor: colors.accent,
     flexDirection: "row",
     justifyContent: "space-between",
   },
   bannerAction: { color: "#93c5fd", fontSize: 13, fontWeight: "700" },
-})
+  })
+}

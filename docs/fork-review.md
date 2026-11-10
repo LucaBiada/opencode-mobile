@@ -89,7 +89,8 @@ refactor of `sessions.ts` + `events.ts` + `connections.ts`, not a thin adapter.
   gate**.
 
 **Caveat for this workstation:** the emulator and build instructions in `AGENTS.md` assume macOS and
-an external disk (`/Volumes/...`, `arm64-v8a`). A Windows dev loop needs its own documented path.
+an external disk. This machine has its own working setup, documented in
+[`dev-setup-windows.md`](dev-setup-windows.md).
 
 ### Build verification (Windows, 2026-11-10)
 
@@ -100,7 +101,8 @@ an external disk (`/Volumes/...`, `arm64-v8a`). A Windows dev loop needs its own
 | `npm test` | 380/380 pass (after the script fix below). |
 | `npx expo config --type public` | Resolves. |
 | `npx expo-doctor` | 14/18 checks pass; 4 findings below. |
-| Android compile / emulator | **Not run.** No JDK, Android SDK or adb on this machine. Needs a Windows setup guide (JDK 17 + cmdline-tools + AVD, ~10 GB) before any device work. |
+| Android compile | `.\gradlew.bat assembleDebug` → BUILD SUCCESSFUL (2m44s warm, 6m36s cold), 180.6 MB debug APK. The first attempt failed on a missing `android/app/debug.keystore` (gitignored by design); generated one with `keytool`. |
+| Emulator + install | AVD `devmote` (API 35, x86_64, WHPX) boots in ~20 s; the APK installs and launches. Debug JS needs Metro plus `adb reverse tcp:8081 tcp:8081`. The edited connection screen renders correctly (waitlist card gone, layout intact). |
 
 **Fixed on the fork:** `npm test` ran 0 tests on Windows. The script quoted its glob patterns, which
 POSIX shells strip but cmd and PowerShell pass through literally, so `node --test` matched nothing.
@@ -209,8 +211,8 @@ Typecheck clean, 385/385 tests pass. Nothing here has been exercised on a device
 ## Suggested order of work
 
 1. **Name and package ID** — blocks every rebrand step.
-2. ~~**Verify the build**~~ — done for TypeScript and unit tests; Android toolchain still missing (see
-   the build table above).
+2. ~~**Verify the build**~~ — done: TypeScript, unit tests, native debug build, emulator install and
+   launch (see the build table above).
 3. ~~**Engine seam PR**~~ — landed; next is the phone engine behind the same interface.
 4. **Rebrand PR** — identity, endpoints, workflows, Sentry/PostHog decision.
 5. **Spikes** — AI SDK streaming over `expo/fetch` against OpenCode Go; `isomorphic-git` vs. GitHub

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react"
 import {
   ActivityIndicator,
+  Alert,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -10,7 +11,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native"
-import { Stack, useLocalSearchParams } from "expo-router"
+import { router, Stack, useLocalSearchParams } from "expo-router"
 import { Ionicons } from "@expo/vector-icons"
 
 import { PhoneMessage } from "../../src/components/phone/PhoneMessage"
@@ -141,6 +142,21 @@ export default function PhoneChatScreen() {
     await phoneEngine.replyPermission(requestID, reply)
   }
 
+  const openMenu = () => {
+    Alert.alert(title, "Phone chat", [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Delete chat",
+        style: "destructive",
+        onPress: async () => {
+          if (!id) return
+          await phoneEngine.deleteSession(id)
+          router.back()
+        },
+      },
+    ])
+  }
+
   return (
     <KeyboardAvoidingView
       style={styles.container}
@@ -159,16 +175,22 @@ export default function PhoneChatScreen() {
                 {title}
               </Text>
               <Text style={styles.subtitle} numberOfLines={1}>
-                Phone · {shortModel(modelID)}
+                Phone mode
               </Text>
             </View>
           ),
-          headerRight: () =>
-            sending ? (
-              <TouchableOpacity onPress={() => void stop()} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
-                <View style={styles.stopRing} />
+          headerRight: () => (
+            <View style={styles.headerActions}>
+              {sending ? (
+                <TouchableOpacity onPress={() => void stop()} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+                  <View style={styles.stopRing} />
+                </TouchableOpacity>
+              ) : null}
+              <TouchableOpacity onPress={openMenu} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+                <Ionicons name="ellipsis-vertical" size={20} color={colors.muted} />
               </TouchableOpacity>
-            ) : null,
+            </View>
+          ),
         }}
       />
 
@@ -258,13 +280,14 @@ const styles = StyleSheet.create({
   headerTitle: { alignItems: "center", maxWidth: 220 },
   title: { color: colors.text, fontSize: 17, fontWeight: "600" },
   subtitle: { color: colors.muted, fontSize: 12, marginTop: 1 },
+  headerActions: { flexDirection: "row", alignItems: "center", gap: 14, paddingRight: 2 },
   stopRing: { width: 22, height: 22, borderRadius: 11, borderWidth: 3, borderColor: colors.accent },
   content: { paddingBottom: 8 },
-  empty: { paddingHorizontal: 28, paddingTop: 80, alignItems: "center", gap: 8 },
-  emptyTitle: { color: colors.text, fontSize: 18, fontWeight: "600", textAlign: "center" },
-  emptyBody: { color: colors.muted, fontSize: 14, lineHeight: 21, textAlign: "center" },
-  working: { paddingVertical: 14, alignItems: "center" },
-  error: { color: colors.danger, paddingHorizontal: 16, paddingTop: 12, fontSize: 14 },
+  empty: { paddingHorizontal: 28, paddingTop: 90, alignItems: "center", gap: 10 },
+  emptyTitle: { color: colors.text, fontSize: 20, fontWeight: "600", textAlign: "center" },
+  emptyBody: { color: colors.muted, fontSize: 15, lineHeight: 23, textAlign: "center" },
+  working: { paddingVertical: 16, alignItems: "center" },
+  error: { color: colors.danger, paddingHorizontal: 22, paddingTop: 12, fontSize: 15 },
   bottom: { paddingBottom: 10 },
   approval: {
     marginHorizontal: 12,
@@ -272,58 +295,58 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.accent,
     backgroundColor: colors.panel,
-    borderRadius: 16,
-    padding: 14,
-    gap: 8,
+    borderRadius: 18,
+    padding: 16,
+    gap: 10,
   },
-  approvalTitle: { color: colors.text, fontWeight: "600", fontSize: 15 },
+  approvalTitle: { color: colors.text, fontWeight: "600", fontSize: 16 },
   approvalPreview: {
     color: colors.muted,
     fontFamily: Platform.select({ ios: "Menlo", android: "monospace" }),
-    fontSize: 12,
-    lineHeight: 18,
+    fontSize: 13,
+    lineHeight: 20,
   },
   approvalActions: { flexDirection: "row", gap: 8, justifyContent: "flex-end", marginTop: 2 },
-  approvalButton: { paddingVertical: 8, paddingHorizontal: 14, borderRadius: 10 },
+  approvalButton: { paddingVertical: 9, paddingHorizontal: 16, borderRadius: 11 },
   approvalGhost: { backgroundColor: colors.panelAlt },
   approvalPrimary: { backgroundColor: colors.accent },
-  approvalButtonText: { color: "#fff", fontWeight: "600", fontSize: 13 },
+  approvalButtonText: { color: "#fff", fontWeight: "600", fontSize: 14 },
   composer: {
     marginHorizontal: 12,
     borderWidth: 1,
     borderColor: colors.border,
     backgroundColor: colors.panel,
-    borderRadius: 24,
-    paddingHorizontal: 14,
-    paddingTop: 8,
-    paddingBottom: 10,
-    gap: 6,
+    borderRadius: 30,
+    paddingHorizontal: 16,
+    paddingTop: 10,
+    paddingBottom: 12,
+    gap: 8,
   },
-  input: { color: colors.text, fontSize: 17, lineHeight: 23, maxHeight: 140, paddingVertical: 6 },
-  composerRow: { flexDirection: "row", alignItems: "center", gap: 8 },
+  input: { color: colors.text, fontSize: 19, lineHeight: 26, maxHeight: 160, paddingVertical: 8 },
+  composerRow: { flexDirection: "row", alignItems: "center", gap: 10 },
   roundButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     backgroundColor: colors.panelAlt,
     alignItems: "center",
     justifyContent: "center",
   },
   roundDisabled: { opacity: 0.45 },
   modelChip: {
-    height: 40,
-    borderRadius: 20,
-    paddingHorizontal: 16,
+    height: 44,
+    borderRadius: 22,
+    paddingHorizontal: 18,
     backgroundColor: colors.panelAlt,
     alignItems: "center",
     justifyContent: "center",
-    maxWidth: 200,
+    maxWidth: 210,
   },
-  modelChipText: { color: colors.textDim, fontSize: 14, fontWeight: "500" },
+  modelChipText: { color: colors.textDim, fontSize: 15, fontWeight: "500" },
   send: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: 52,
+    height: 52,
+    borderRadius: 26,
     backgroundColor: colors.accent,
     alignItems: "center",
     justifyContent: "center",

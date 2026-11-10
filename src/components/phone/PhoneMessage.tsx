@@ -1,5 +1,5 @@
 import { memo, useState } from "react"
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native"
+import { Share, StyleSheet, Text, TouchableOpacity, View } from "react-native"
 import { Ionicons } from "@expo/vector-icons"
 import * as Clipboard from "expo-clipboard"
 
@@ -93,9 +93,16 @@ export const PhoneMessage = memo(function PhoneMessage({ message, parts }: { mes
           <TouchableOpacity
             style={styles.action}
             onPress={() => void Clipboard.setStringAsync(text)}
-            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           >
-            <Ionicons name="copy-outline" size={16} color={colors.muted} />
+            <Ionicons name="copy-outline" size={19} color={colors.muted} />
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.action}
+            onPress={() => void Share.share({ message: text })}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          >
+            <Ionicons name="share-outline" size={19} color={colors.muted} />
           </TouchableOpacity>
         </View>
       ) : null}
@@ -104,40 +111,39 @@ export const PhoneMessage = memo(function PhoneMessage({ message, parts }: { mes
 })
 
 const styles = StyleSheet.create({
-  assistant: { paddingHorizontal: 16, paddingTop: 18 },
-  userRow: { paddingHorizontal: 16, paddingTop: 18, alignItems: "flex-end" },
+  assistant: { paddingHorizontal: 22, paddingTop: 26 },
+  userRow: { paddingHorizontal: 16, paddingTop: 26 },
   userBubble: {
-    maxWidth: "88%",
-    backgroundColor: colors.panelAlt,
-    borderRadius: 18,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
+    backgroundColor: colors.panel,
+    borderRadius: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
   },
-  reasoning: { marginBottom: 10 },
+  reasoning: { marginBottom: 12 },
   reasoningHeader: { flexDirection: "row", alignItems: "center", gap: 6 },
-  reasoningLabel: { color: colors.muted, fontSize: 13, fontWeight: "600" },
-  reasoningText: { color: colors.muted, fontSize: 13, lineHeight: 20, marginTop: 6 },
+  reasoningLabel: { color: colors.muted, fontSize: 14, fontWeight: "600" },
+  reasoningText: { color: colors.muted, fontSize: 14, lineHeight: 22, marginTop: 8 },
   tool: {
     borderWidth: 1,
     borderColor: colors.border,
     backgroundColor: colors.panel,
-    borderRadius: 12,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    marginTop: 10,
+    borderRadius: 14,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    marginTop: 12,
   },
   toolHeader: { flexDirection: "row", alignItems: "center", gap: 8 },
-  toolName: { color: colors.textDim, fontSize: 13, fontWeight: "600" },
+  toolName: { color: colors.textDim, fontSize: 14, fontWeight: "600" },
   spacer: { flex: 1 },
   dot: { width: 7, height: 7, borderRadius: 4 },
   toolOutput: {
     color: colors.muted,
     fontFamily: "monospace",
-    fontSize: 12,
-    lineHeight: 18,
-    marginTop: 8,
+    fontSize: 13,
+    lineHeight: 19,
+    marginTop: 10,
   },
-  error: { color: colors.danger, fontSize: 14, marginTop: 8 },
-  actions: { flexDirection: "row", gap: 18, marginTop: 10 },
-  action: { opacity: 0.9 },
+  error: { color: colors.danger, fontSize: 15, marginTop: 10 },
+  actions: { flexDirection: "row", gap: 26, marginTop: 16 },
+  action: { opacity: 0.95 },
 })

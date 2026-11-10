@@ -186,20 +186,7 @@
         "helpProtocolMiddle": " для локальных и Tailscale-адресов; если настроен TLS — ",
         "helpProtocolSuffix": ".",
         "helpRunningPrefix": "Убедитесь, что OpenCode запущен:",
-        "connectCardTitle": "OpenCode Connect",
-        "connectCardBadge": "Скоро",
-        "connectCardDesc": "Свяжите телефон с вашим сервером opencode — без настройки туннелей и фаервола. Подключение в одно касание откуда угодно.",
         "advancedLink": "Расширенные настройки (туннели, облако, аутентификация)"
-      },
-      "waitlist": {
-        "successText": "Вы в списке — мы напишем вам, когда OpenCode Connect будет готов.",
-        "joinButton": "Встать в очередь",
-        "alertTitle": "Встать в очередь",
-        "queuedText": "Сохранено на этом устройстве — мы завершим регистрацию, как только вы снова будете онлайн. Ничего делать не нужно.",
-        "emailUsLink": "Всё ещё не работает? Напишите нам",
-        "emailUsButton": "Написать нам",
-        "queueFailedMessage": "Не удалось связаться со службой регистрации или сохранить запрос на этом устройстве. Вы можете написать нам, и мы добавим вас вручную.",
-        "noMailAppMessage": "Почтовое приложение недоступно. Напишите на support@agentlabs.cc с темой \"OpenCode Connect Waitlist\"."
       },
       "advanced": {
         "backToQuick": "Простой режим",
@@ -456,8 +443,7 @@
     "ctaTitle": "Нравится?",
     "ctaSubtitle": "Это было записанное демо. Подключите свой сервер opencode, чтобы делать это по-настоящему.",
     "connectButton": "Подключить свой сервер",
-    "setupGuideLink": "Как настроить сервер",
-    "hostedCtaLink": "Нет сервера? Встаньте в очередь на OpenCode Connect — хостинг без настройки"
+    "setupGuideLink": "Как настроить сервер"
   },
   "update": {
     "available": "Доступно обновление",

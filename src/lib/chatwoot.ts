@@ -27,8 +27,10 @@ interface ChatwootConfig {
 
 export function getChatwootConfig(): ChatwootConfig | null {
   const inboxIdentifier = process.env.EXPO_PUBLIC_CHATWOOT_INBOX_IDENTIFIER
-  if (!inboxIdentifier) return null
-  const baseUrl = (process.env.EXPO_PUBLIC_CHATWOOT_BASE_URL || "https://support.agentlabs.cc").replace(/\/+$/, "")
+  // No default host: support reports must go to an inbox we configure, never to
+  // the project this app was forked from.
+  const baseUrl = (process.env.EXPO_PUBLIC_CHATWOOT_BASE_URL || "").replace(/\/+$/, "")
+  if (!inboxIdentifier || !baseUrl) return null
   return { baseUrl, inboxIdentifier }
 }
 

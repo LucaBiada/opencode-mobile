@@ -43,15 +43,18 @@ build.
 
 ## 3. Endpoints and telemetry that point at upstream
 
-- [ ] `src/lib/waitlist.ts` → delete the whole feature. It posts to
-      `opencode.agentlabs.cc/api/beta-signup` and SPEC.md v1 has no backend.
+- [x] `src/lib/waitlist.ts` → deleted with its storage, UI, i18n strings and tests. It posted to
+      `opencode.agentlabs.cc/api/beta-signup`, and SPEC.md v1 has no backend.
 - [ ] Sentry: `app.json` plugin org/project `vibetechnologies/opencode-mobile` and
       `src/lib/sentry*.ts` → own project, or disable crash reporting for v1.
 - [ ] PostHog: `src/lib/analytics.ts` (`EXPO_PUBLIC_POSTHOG_KEY`, EU host) → own project or strip.
       Keep the consent/revocation mechanism; it is good.
-- [ ] Support address `support@agentlabs.cc` (waitlist fallback, settings) → ours.
-- [ ] Update check → GitHub releases of `dzianisv/opencode-mobile` → our repo, or disable.
-- [ ] Docs/privacy links → `dzianisv.github.io/opencode-mobile/...` → ours or drop.
+- [x] Support address `support@agentlabs.cc` → removed with the waitlist; nothing in the app points at
+      it any more.
+- [x] Update check → `src/lib/update-check.ts` now reads `RELEASES_*` from `src/lib/links.ts`, which
+      points at `LucaBiada/opencode-mobile` (one constant to change after the repo rename).
+- [x] Docs/privacy links → centralized in `src/lib/links.ts`; both point into the repo for now
+      (`docs/privacy.md` is a new draft).
 
 ## 4. CI, stores, distribution
 

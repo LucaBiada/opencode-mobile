@@ -7,6 +7,7 @@ import { providerModel } from "../../lib/phone/provider"
 import { DEFAULT_PROVIDER_ID, PRESETS } from "../../lib/phone/providers"
 import { createPhoneTools } from "./tools"
 import {
+  appendApprovalAudit,
   completePhoneMessage,
   deletePhoneSession,
   getPhoneSession,
@@ -76,16 +77,19 @@ export function createPhoneEngine(): Engine {
     const key = `${sessionID}:${toolName}`
     if (alwaysAllow.has(key)) {
       console.log(`[phone] approval auto-allowed for ${key}`)
+      void appendApprovalAudit({ sessionID, tool: toolName, decision: "auto-allowed" }).catch(() => undefined)
       return
     }
     const requestID = id("p_perm")
     console.log(`[phone] approval asked ${requestID} tool=${toolName} session=${sessionID}`)
+    void appendApprovalAudit({ sessionID, tool: toolName, decision: "asked", detail: preview }).catch(() => undefined)
     emit({ type: "permission.asked", properties: { id: requestID, sessionID, tool: toolName, input, preview } })
     await new Promise<void>((resolve, reject) => {
       approvals.set(requestID, {
         sessionID,
         settle: (reply) => {
           console.log(`[phone] approval settled ${requestID} reply=${reply}`)
+          void appendApprovalAudit({ sessionID, tool: toolName, decision: reply }).catch(() => undefined)
           if (reply === "reject") {
             reject(new Error(`The user rejected the ${toolName} tool call.`))
             return

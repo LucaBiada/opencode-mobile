@@ -36,6 +36,14 @@ async function init(): Promise<SQLite.SQLiteDatabase> {
       tools INTEGER NOT NULL,
       builtin INTEGER NOT NULL
     );
+    CREATE TABLE IF NOT EXISTS phone_audit (
+      id TEXT PRIMARY KEY NOT NULL,
+      session_id TEXT NOT NULL,
+      tool TEXT NOT NULL,
+      decision TEXT NOT NULL,
+      detail TEXT,
+      created_at INTEGER NOT NULL
+    );
     CREATE TABLE IF NOT EXISTS phone_messages (
       id TEXT PRIMARY KEY NOT NULL,
       session_id TEXT NOT NULL,
@@ -224,6 +232,34 @@ export async function deleteProvider(id: string): Promise<void> {
 
 // Presets are seeded once into the database so the UI can treat built-in and
 // user-added providers identically (edit, test, pick).
+// Durable record of every approval decision for a mutating tool. Logs vanish on
+// reinstall and logcat rotates; if a write ever executes without a matching
+// audit row, that is a gate bypass and this table is how we catch it.
+export async function appendApprovalAudit(entry: {
+  sessionID: string
+  tool: string
+  decision: string
+  detail?: string
+}): Promise<void> {
+  const db = await open()
+  await db.runAsync(
+    "INSERT INTO phone_audit (id, session_id, tool, decision, detail, created_at) VALUES (?, ?, ?, ?, ?, ?)",
+    `${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`,
+    entry.sessionID,
+    entry.tool,
+    entry.decision,
+    entry.detail ?? null,
+    Date.now(),
+  )
+}
+
+export async function listApprovalAudit(sessionID: string): Promise<
+  Array<{ tool: string; decision: string; detail: string | null; created_at: number }>
+> {
+  const db = await open()
+  return db.getAllAsync("SELECT tool, decision, detail, created_at FROM phone_audit WHERE session_id = ? ORDER BY created_at DESC", sessionID)
+}
+
 export async function seedProviders(presets: Provider[]): Promise<void> {
   const db = await open()
   const row = await db.getFirstAsync<{ count: number }>("SELECT COUNT(*) AS count FROM phone_providers")

@@ -43,6 +43,13 @@ can read, search and edit files inside a per-session workspace, with approvals f
 - `write` and `edit` call the engine's approval gate first. The gate emits `permission.asked`, the chat
   shows a card with a preview, and the user chooses **Allow once**, **Always** (session-scoped) or
   **Reject**. Rejecting rejects the tool promise, so the model receives an error result and can adapt.
+- **Provider-executed tool results are refused.** Some OpenAI-compatible servers (Unsloth advertises
+  "server-side tools") can return a tool result without ever running our `execute`. That cannot have
+  touched the workspace, so such a part is shown as an error — "This tool ran outside Devmote, so it
+  did not change your workspace" — never as a green check. Without this guard a model could claim a
+  successful write that never happened.
+- `tools.test.ts` is a tripwire: it fails if a mutating tool is added without a gate, or if `write`
+  ever calls `writeText` before asking.
 - Outputs are clipped at 50 KB; `read` is capped at 2000 lines.
 - `walk`/`grep` cap their traversal (2000–4000 entries, 500 files) so a phone never tries to enumerate
   a huge tree in one call.

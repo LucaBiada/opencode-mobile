@@ -74,13 +74,18 @@ export function createPhoneEngine(): Engine {
     preview?: string,
   ): Promise<void> => {
     const key = `${sessionID}:${toolName}`
-    if (alwaysAllow.has(key)) return
+    if (alwaysAllow.has(key)) {
+      console.log(`[phone] approval auto-allowed for ${key}`)
+      return
+    }
     const requestID = id("p_perm")
+    console.log(`[phone] approval asked ${requestID} tool=${toolName} session=${sessionID}`)
     emit({ type: "permission.asked", properties: { id: requestID, sessionID, tool: toolName, input, preview } })
     await new Promise<void>((resolve, reject) => {
       approvals.set(requestID, {
         sessionID,
         settle: (reply) => {
+          console.log(`[phone] approval settled ${requestID} reply=${reply}`)
           if (reply === "reject") {
             reject(new Error(`The user rejected the ${toolName} tool call.`))
             return
@@ -213,10 +218,30 @@ export function createPhoneEngine(): Engine {
           }
           if (chunk.type === "tool-result") {
             const part = toolParts.get(chunk.toolCallId)
-            if (part) {
-              part.state = { ...part.state, status: "completed", output: chunk.output }
-              emit({ type: "part.updated", properties: { part } })
+            if (!part) {
+              // The provider returned a result for a call we never issued, or
+              // executed the tool itself. It cannot have touched our workspace,
+              // so never render it as a successful local tool call.
+              const stray: Part = {
+                id: id("p_part"),
+                messageID: assistant.id,
+                type: "tool",
+                tool: chunk.toolName,
+                callID: chunk.toolCallId,
+                state: {
+                  status: "error",
+                  input: chunk.input,
+                  error: {
+                    message: "This tool ran outside Devmote, so it did not change your workspace.",
+                  },
+                },
+              }
+              toolParts.set(chunk.toolCallId, stray)
+              emit({ type: "part.updated", properties: { part: stray } })
+              continue
             }
+            part.state = { ...part.state, status: "completed", output: chunk.output }
+            emit({ type: "part.updated", properties: { part } })
             continue
           }
           if (chunk.type === "tool-error") {

@@ -80,6 +80,7 @@ export default function PhoneChatScreen() {
           continue
         }
         if (event.type === "permission.asked") {
+          console.log(`[phone-ui] permission.asked ${String(payload.id)} tool=${String(payload.tool)}`)
           setApproval({
             id: String(payload.id),
             tool: String(payload.tool),
@@ -88,6 +89,7 @@ export default function PhoneChatScreen() {
           continue
         }
         if (event.type === "session.idle") {
+          console.log("[phone-ui] session.idle, clearing approval")
           setSending(false)
           setApproval(null)
           continue
@@ -131,6 +133,7 @@ export default function PhoneChatScreen() {
   const decide = async (reply: "once" | "always" | "reject") => {
     if (!approval) return
     const requestID = approval.id
+    console.log(`[phone-ui] decide ${requestID} reply=${reply}`)
     setApproval(null)
     await phoneEngine.replyPermission(requestID, reply)
   }

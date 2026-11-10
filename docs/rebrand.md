@@ -20,26 +20,46 @@ build.
 
 ## 1. Identity
 
-- [ ] `app.json`: `name`, `slug`, `scheme`, `android.package`, `ios.bundleIdentifier`, and the
-      `opencode://` deep links that appear in screens/links.
-- [ ] Reset versioning for a new listing: `version` `0.5.0`, Android `versionCode` `1` (Play rejects a
-      new listing that reuses a code from another track).
+- [x] `app.json`: `name` Devmote, `slug` `devmote`, `scheme` `devmote`, Android package and iOS bundle
+      ID `dev.devmote.app`, and all permission strings rewritten.
+- [x] Reset versioning for a new listing: `0.5.0`, Android `versionCode` `1`, with matching
+      `distribution/changelogs/1.txt` and `fastlane/.../changelogs/1.txt` so `check:versions` passes.
 - [ ] New icon, adaptive icon, splash, notification icon (the current assets carry opencode's mark).
-- [ ] All permission strings in `app.json` mention "OpenCode" — rewrite them for Devmote.
-- [ ] `package.json` name: `@opencode-ai/mobile` → `@devmote/mobile` (unpublished, safe).
+- [x] All permission strings mention "OpenCode" → rewritten for Devmote.
+- [x] `package.json` name: `@opencode-ai/mobile` → `@devmote/mobile` (unpublished, safe).
 
 ## 2. Native pass
 
-- [ ] After step 1, run `npx expo prebuild --clean` to regenerate `android/` and `ios/` from config,
-      then verify the custom `plugins/withKeyboardInsets` config plugin still applies.
-- [ ] If prebuild is not viable, hand-edit: `android/app/build.gradle` (`namespace`,
-      `applicationId`), `MainActivity` package path, `strings.xml` `app_name`, `AndroidManifest.xml`
-      intent filters + cleartext policy; iOS `project.pbxproj`, `Info.plist` `CFBundleDisplayName`,
-      `CFBundleURLSchemes`, permission strings.
-- [ ] Fix the two expo-doctor config issues while in here: drop the invalid
-      `android.usesCleartextTraffic` (put it in the manifest) and add `expo-font` + `expo-constants`.
-- [ ] New signing keystore for the new package ID; never reuse upstream's. Enable Play App Signing.
+- [x] Regenerated `android/` with `npx expo prebuild --platform android --clean --no-install`. The
+      package, scheme, app name and MainActivity path all moved to `dev.devmote.app` / `devmote`.
+- [x] Restored the hand-edited native config that `prebuild --clean` silently deleted (see below).
+- [ ] `ios/`: not regenerated — `expo prebuild` for iOS on Windows can't be verified. Do it on a Mac
+      with `npx expo prebuild --platform ios --clean`, or hand-edit the bundle ID and URL scheme.
+- [x] Fixed the `android.usesCleartextTraffic` schema error by deleting it from `app.json` and keeping
+      the setting in `AndroidManifest.xml`.
+- [ ] Add `expo-font` and `expo-constants` (expo-doctor reports them missing).
+- [ ] New icon, adaptive icon, splash and notification icon. The regenerated `mipmap-*` and
+      `splashscreen_logo` assets are still opencode's art.
+- [ ] New signing keystore for `dev.devmote.app`; never reuse upstream's. Enable Play App Signing.
 - [ ] Build and run before touching anything else.
+
+### Native customizations that `prebuild --clean` removed
+
+`prebuild` regenerates `android/` from `app.json` and the config plugins. These four were hand-edited
+in the committed folder and are **not** expressible in `app.json` today, so they had to be re-applied
+by hand. Move them into a config plugin (or `expo-build-properties`) before the next prebuild, or the
+next regeneration will drop them again.
+
+1. **`signingConfigs.release`** driven by `RELEASE_STORE_*` env vars, with v1+v2 signing only
+   (v2+v3 crashes the androguard that fdroidserver uses).
+2. **`dependenciesInfo { includeInApk false; includeInBundle false }`** for F-Droid.
+3. **`android:usesCleartextTraffic="true"`** in `AndroidManifest.xml`. Without it the app cannot reach
+   a LAN `http://` opencode server, which is remote mode's core use case.
+4. **`RECORD_AUDIO`** without `tools:node="remove"`; the generated manifest had the removal attribute,
+   which kills speech input.
+
+The `@sentry/react-native/expo` gradle hook was dropped on purpose: crash reporting is disabled for
+v1 and no longer points at the upstream Sentry project.
 
 ## 3. Endpoints and telemetry that point at upstream
 

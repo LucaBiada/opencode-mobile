@@ -81,21 +81,19 @@ def enableMinifyInReleaseBuilds = (findProperty('android.enableMinifyInReleaseBu
  */
 def jscFlavor = 'io.github.react-native-community:jsc-android:2026004.+'
 
-apply from: new File(["node", "--print", "require('path').dirname(require.resolve('@sentry/react-native/package.json'))"].execute().text.trim(), "sentry.gradle")
-
 android {
     ndkVersion rootProject.ext.ndkVersion
 
     buildToolsVersion rootProject.ext.buildToolsVersion
     compileSdk rootProject.ext.compileSdkVersion
 
-    namespace 'cc.agentlabs.opencode'
+    namespace 'dev.devmote.app'
     defaultConfig {
-        applicationId 'cc.agentlabs.opencode'
+        applicationId 'dev.devmote.app'
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 44
-        versionName "0.4.17"
+        versionCode 1
+        versionName "0.5.0"
 
         buildConfigField "String", "REACT_NATIVE_RELEASE_LEVEL", "\"${findProperty('reactNativeReleaseLevel') ?: 'stable'}\""
     }
@@ -113,11 +111,8 @@ android {
                 keyAlias System.getenv("RELEASE_KEY_ALIAS")
                 keyPassword System.getenv("RELEASE_KEY_PASSWORD")
                 // Sign with v1+v2 only. A v2+v3 block pair crashes the androguard
-                // version fdroidserver uses ("'NoOverwriteDict' object has no
-                // attribute 'append'"), which broke the self-hosted F-Droid repo
-                // publish from v0.4.2 on. v1+v2 installs on all supported API levels
-                // and matches the known-good published APK. Re-enable v3 only once
-                // fdroidserver/androguard ships the fix.
+                // version fdroidserver uses, which broke the F-Droid publish.
+                // v1+v2 installs on all supported API levels.
                 enableV1Signing true
                 enableV2Signing true
                 enableV3Signing false
@@ -150,7 +145,8 @@ android {
     }
     dependenciesInfo {
         // Disable encrypted dependency metadata signing block (0x504B4453).
-        // Required for F-Droid compliance — fdroid scanner rejects APKs containing this block.
+        // Required for F-Droid compliance — the fdroid scanner rejects APKs
+        // containing this block.
         includeInApk false
         includeInBundle false
     }

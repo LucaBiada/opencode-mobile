@@ -1,0 +1,5 @@
+v0.5.0 - Devmote
+
+ First release under the Devmote identity: new application ID (dev.devmote.app), new URL scheme
+ (devmote://), and a fresh version line for a new store listing. The upstream waitlist and its
+ network calls are gone, and links/update checks now point at this project's repository.

@@ -1,4 +1,4 @@
-package cc.agentlabs.opencode
+package dev.devmote.app
 
 import android.os.Build
 import android.os.Bundle

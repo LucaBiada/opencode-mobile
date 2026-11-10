@@ -102,11 +102,15 @@ export const MessageBubble = memo(
                 </TouchableOpacity>
               </>
             ) : null}
-            {onSelectText && hasSelectableContent(parts) ? (
-              <TouchableOpacity hitSlop={10} onPress={() => onSelectText(message.id)}>
-                <Ionicons name="copy-outline" size={18} color={colors.muted} />
+            {onSelectText && hasSelectableContent(parts) && (
+              <TouchableOpacity
+                hitSlop={10}
+                onPress={() => onSelectText(message.id)}
+                testID={`message-select-text-${message.id}`}
+              >
+                <Ionicons name="document-text-outline" size={18} color={colors.muted} />
               </TouchableOpacity>
-            ) : null}
+            )}
             {message.tokens ? (
               <Text style={styles.tokens}>
                 {message.tokens.input + message.tokens.output} tokens
@@ -116,13 +120,13 @@ export const MessageBubble = memo(
           </View>
         ) : null}
 
-        {isUser && onEdit && !isUserBlocked(parts) ? (
+        {isUser && onEdit && !isUserBlocked(parts) && (
           <View style={styles.userActions}>
             <TouchableOpacity hitSlop={10} onPress={() => onEdit(message.id)} testID={`message-edit-${message.id}`}>
               <Ionicons name="pencil-outline" size={17} color={colors.muted} />
             </TouchableOpacity>
           </View>
-        ) : null}
+        )}
       </View>
     )
   },

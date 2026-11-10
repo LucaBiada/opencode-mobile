@@ -37,7 +37,7 @@
     "privacy": {
       "crashReporting": {
         "label": "崩溃报告与使用分析",
-        "description": "分享匿名崩溃报告（Sentry）和使用分析（PostHog），帮助改进 OpenCode。您分享的诊断报告也会发送至我们的支持收件箱。不包含代码或提示词内容。"
+        "description": "分享匿名崩溃报告（Sentry）和使用分析（PostHog），帮助改进 Devmote。您分享的诊断报告也会发送至我们的支持收件箱。不包含代码或提示词内容。"
       },
       "privacyPolicy": {
         "label": "隐私政策",
@@ -52,7 +52,7 @@
       },
       "docs": {
         "label": "文档",
-        "description": "了解如何使用 OpenCode"
+        "description": "了解如何使用 Devmote"
       }
     },
     "language": {
@@ -63,15 +63,22 @@
       "zhHans": "简体中文",
       "ru": "俄语"
     },
+    "appearance": {
+      "label": "主题",
+      "title": "选择主题",
+      "system": "跟随系统",
+      "dark": "深色",
+      "light": "浅色"
+    },
     "footer": {
-      "appName": "OpenCode Mobile",
+      "appName": "Devmote",
       "tagline": "随时随地连接您的 AI 编程助手"
     },
     "alerts": {
       "privacyNotSavedTitle": "隐私设置未保存",
       "privacyNotSavedMessage": "本次会话已关闭崩溃报告，但您的选择未能保存。请重试。",
       "notificationsDisabledTitle": "通知已关闭",
-      "notificationsDisabledMessage": "请在设备设置中为 OpenCode 启用通知以接收提醒。"
+      "notificationsDisabledMessage": "请在设备设置中为 Devmote 启用通知以接收提醒。"
     }
   },
   "session": {
@@ -167,7 +174,7 @@
     },
     "add": {
       "quick": {
-        "title": "连接到 OpenCode",
+        "title": "连接到您的电脑",
         "subtitle": "输入您电脑的 IP 地址进行连接",
         "ipAddressLabel": "IP 地址",
         "nameOptionalLabel": "名称（可选）",
@@ -185,7 +192,7 @@
         "helpProtocolPrefix": "本地和 Tailscale 地址请使用 ",
         "helpProtocolMiddle": "，除非已配置 TLS，此时请使用 ",
         "helpProtocolSuffix": "。",
-        "helpRunningPrefix": "请确保 OpenCode 正在运行：",
+        "helpRunningPrefix": "请确保服务器正在运行：",
         "advancedLink": "高级选项（隧道、云端、身份验证）"
       },
       "advanced": {
@@ -235,7 +242,7 @@
     },
     "empty": {
       "title": "暂无连接",
-      "subtitle": "添加一个 OpenCode 服务器连接"
+      "subtitle": "添加一个电脑连接"
     },
     "header": "点击切换，长按查看更多选项",
     "preferences": {
@@ -327,7 +334,7 @@
     "tryAgainButton": "重试"
   },
   "telemetryConsent": {
-    "title": "帮助改进 OpenCode？",
+    "title": "帮助改进 Devmote？",
     "body": "分享匿名崩溃报告和使用分析，帮助我们更快地发现并修复问题。您分享的诊断报告也会发送至我们的支持收件箱。绝不包含代码、提示词或服务器地址。",
     "bullets": {
       "deviceInfo": "设备型号、系统版本、应用版本",
@@ -344,7 +351,7 @@
     "footnote": "您可以随时在设置 → 隐私中更改此设置。"
   },
   "authGate": {
-    "title": "OpenCode 已锁定",
+    "title": "Devmote 已锁定",
     "subtitle": "请验证身份以访问您的会话",
     "unlockButton": "解锁"
   },
@@ -441,7 +448,7 @@
     "title": "演示",
     "banner": "演示 — 示例对话，未连接服务器",
     "ctaTitle": "喜欢这个体验吗？",
-    "ctaSubtitle": "这是一个脚本化的演示。连接您自己的 opencode 服务器即可真正体验。",
+    "ctaSubtitle": "这是一个脚本化的演示。连接您自己的电脑即可真正体验。",
     "connectButton": "连接您自己的服务器",
     "setupGuideLink": "如何设置服务器"
   },

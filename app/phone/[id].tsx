@@ -1,4 +1,4 @@
-﻿import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import {
   ActivityIndicator,
   Alert,
@@ -324,8 +324,8 @@ function createStyles(colors: Theme) {
     borderRadius: 18,
     paddingHorizontal: 14,
     paddingTop: 15,
-    paddingBottom: 15,
-    gap: 7,
+    paddingBottom: 7,
+    gap: 23,
   },
   input: { color: colors.text, fontSize: 17, lineHeight: 22, maxHeight: 140, paddingVertical: 0 },
   composerRow: { flexDirection: "row", alignItems: "center", gap: 8 },

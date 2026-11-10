@@ -1,5 +1,5 @@
 import { create } from "zustand"
-import { useConnections } from "./connections"
+import { engineFor } from "../engines"
 import type { Agent, Command } from "../lib/sdk"
 import { chooseModelSelection } from "../lib/model-selection"
 
@@ -58,13 +58,13 @@ export const useCatalog = create<CatalogState>((set, get) => ({
   loaded: false,
 
   load: async () => {
-    const client = useConnections.getState().client
-    if (!client) return
+    const engine = engineFor()
+    if (!engine) return
 
     const [agentResult, commandResult, providerResult] = await Promise.all([
-      client.agent.list().catch(() => [] as Agent[]),
-      client.command.list().catch(() => [] as Command[]),
-      client.provider.list().catch(() => null),
+      engine.listAgents().catch(() => [] as Agent[]),
+      engine.listCommands().catch(() => [] as Command[]),
+      engine.listProviders().catch(() => null),
     ])
 
     const agents = Array.isArray(agentResult) ? agentResult : []

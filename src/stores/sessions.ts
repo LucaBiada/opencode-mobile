@@ -1,6 +1,6 @@
 import { create } from "zustand"
-import { ApiError, type Session, type Message, type Part, type Event, type MessageWithParts, type Client } from "../lib/sdk"
-import { useConnections } from "./connections"
+import { ApiError, type Session, type Message, type Part, type Event, type MessageWithParts } from "../lib/sdk"
+import { directorylessEngine, engineFor } from "../engines"
 import { useSettings } from "./settings"
 import { addBreadcrumb } from "../lib/sentry"
 import { AnalyticsEvent, track } from "../lib/analytics"
@@ -77,15 +77,7 @@ export const abortedSessions = new Set<string>()
 // the next value and only commits its result if still the latest.
 let selectSeq = 0
 
-// Get the right client for a session's directory
-function clientFor(directory?: string): Client | null {
-  const connState = useConnections.getState()
-  if (!directory) return connState.client
-  const connDir = connState.activeConnection?.directory
-  if (directory !== connDir) return connState.clientForDirectory(directory)
-  return connState.client
-}
-
+// Get the engine scoped to a session's directory
 export const useSessions = create<SessionsState>((set, get) => ({
   sessions: [],
   currentSession: null,
@@ -98,11 +90,10 @@ export const useSessions = create<SessionsState>((set, get) => ({
   error: null,
 
   loadSessions: async () => {
-    const connState = useConnections.getState()
-    // Use a directory-less client so the server returns sessions from ALL projects,
+    // Use a directory-less engine so the server returns sessions from ALL projects,
     // not just the one matching the active connection's directory header.
-    const client = connState.clientForDirectory(undefined) || connState.client
-    if (!client) {
+    const engine = directorylessEngine()
+    if (!engine) {
       set({ error: "No active connection" })
       return
     }
@@ -111,7 +102,7 @@ export const useSessions = create<SessionsState>((set, get) => ({
       set({ isLoading: true, error: null })
       // A directory-less list includes sessions across projects. Each row carries
       // its own directory into the session route so subsequent operations stay scoped.
-      const sessions = await client.session.list({ roots: true, limit: 50 })
+      const sessions = await engine.listSessions({ roots: true, limit: 50 })
       set({ sessions, isLoading: false })
     } catch (error) {
       set({ error: "Failed to load sessions", isLoading: false })
@@ -119,10 +110,9 @@ export const useSessions = create<SessionsState>((set, get) => ({
   },
 
   selectSession: async (sessionID, directory) => {
-    // Use directory-specific client if the session belongs to a different project
-    const connState = useConnections.getState()
-    const client = directory ? connState.clientForDirectory(directory) : connState.client
-    if (!client) {
+    // Use the engine for the session's project when it differs from the active one
+    const engine = engineFor(directory)
+    if (!engine) {
       set({ error: "No active connection" })
       return
     }
@@ -151,8 +141,8 @@ export const useSessions = create<SessionsState>((set, get) => ({
       }))
 
       const [session, messagesResponse] = await Promise.all([
-        client.session.get(sessionID),
-        client.session.messages(sessionID, { limit: pageSize() }),
+        engine.getSession(sessionID),
+        engine.getMessages(sessionID, { limit: pageSize() }),
       ])
 
       // A newer selectSession started while we were fetching — discard this
@@ -178,16 +168,16 @@ export const useSessions = create<SessionsState>((set, get) => ({
   },
 
   loadOlderMessages: async () => {
-    const client = clientFor(get().currentSession?.directory)
+    const engine = engineFor(get().currentSession?.directory)
     const session = get().currentSession
-    if (!client || !session) return
+    if (!engine || !session) return
     if (get().loadingMore || !get().hasMore) return
 
     try {
       set({ loadingMore: true })
 
       // Fetch ALL messages for this session
-      const response = await client.session.messages(session.id)
+      const response = await engine.getMessages(session.id)
       const { messages: all, parts: allParts } = parseMessages(response)
 
       // Merge: use all messages from full fetch, but keep any temp/optimistic messages
@@ -208,15 +198,14 @@ export const useSessions = create<SessionsState>((set, get) => ({
   },
 
   createSession: async (title) => {
-    const connState = useConnections.getState()
-    const client = connState.client
-    if (!client) {
+    const engine = engineFor()
+    if (!engine) {
       set({ error: "No active connection" })
       return null
     }
 
     try {
-      const created = await client.session.create({ title })
+      const created = await engine.createSession({ title })
       // Don't optimistically add to sessions list — let loadSessions() handle it
       // to avoid duplicate key errors from race conditions
       set({
@@ -235,14 +224,14 @@ export const useSessions = create<SessionsState>((set, get) => ({
 
   deleteSession: async (sessionID) => {
     const session = get().sessions.find((s) => s.id === sessionID)
-    const client = clientFor(session?.directory)
-    if (!client) {
+    const engine = engineFor(session?.directory)
+    if (!engine) {
       set({ error: "No active connection" })
       return
     }
 
     try {
-      await client.session.delete(sessionID)
+      await engine.deleteSession(sessionID)
       set((state) => ({
         sessions: state.sessions.filter((s) => s.id !== sessionID),
         currentSession: state.currentSession?.id === sessionID ? null : state.currentSession,
@@ -255,9 +244,9 @@ export const useSessions = create<SessionsState>((set, get) => ({
   },
 
   sendMessage: async (text, model, agent, files, variant) => {
-    const client = clientFor(get().currentSession?.directory)
+    const engine = engineFor(get().currentSession?.directory)
     const session = get().currentSession
-    if (!client || !session) {
+    if (!engine || !session) {
       set({ error: "No active session" })
       return
     }
@@ -321,7 +310,7 @@ export const useSessions = create<SessionsState>((set, get) => ({
       // Await submission (POST to /prompt_async resolves fast, well before the
       // streamed response) so a failure here can propagate to the caller — SSE
       // events still update messages/parts/status in real-time on success.
-      await client.session.prompt(session.id, { parts: promptParts, model, agent, variant })
+      await engine.prompt(session.id, { parts: promptParts, model, agent, variant })
     } catch (err) {
       console.error("[sendMessage] error:", err)
       const stillCurrent = get().currentSession?.id === session.id
@@ -335,12 +324,12 @@ export const useSessions = create<SessionsState>((set, get) => ({
   },
 
   abortSession: async () => {
-    const client = clientFor(get().currentSession?.directory)
+    const engine = engineFor(get().currentSession?.directory)
     const session = get().currentSession
-    if (!client || !session) return
+    if (!engine || !session) return
 
     try {
-      await client.session.abort(session.id)
+      await engine.abort(session.id)
       // Mark only after the abort request succeeded — if it failed, the run
       // continues and any eventual completion is a genuine response.
       abortedSessions.add(session.id)
@@ -351,12 +340,12 @@ export const useSessions = create<SessionsState>((set, get) => ({
   },
 
   refreshMessages: async () => {
-    const client = clientFor(get().currentSession?.directory)
+    const engine = engineFor(get().currentSession?.directory)
     const session = get().currentSession
-    if (!client || !session) return
+    if (!engine || !session) return
 
     try {
-      const response = await client.session.messages(session.id)
+      const response = await engine.getMessages(session.id)
       const { messages, parts } = parseMessages(response)
       set({ messages, parts })
     } catch (error) {
@@ -371,12 +360,12 @@ export const useSessions = create<SessionsState>((set, get) => ({
   // anything itself. Returns the reverted message's text/files so the
   // caller can prefill the composer.
   revertToMessage: async (messageID) => {
-    const client = clientFor(get().currentSession?.directory)
+    const engine = engineFor(get().currentSession?.directory)
     const session = get().currentSession
-    if (!client || !session) return { ok: false, reason: "error" }
+    if (!engine || !session) return { ok: false, reason: "error" }
 
     try {
-      const updated = await client.session.revert(session.id, messageID)
+      const updated = await engine.revert(session.id, messageID)
       set((state) => ({
         currentSession: state.currentSession?.id === session.id ? updated : state.currentSession,
       }))
@@ -397,12 +386,12 @@ export const useSessions = create<SessionsState>((set, get) => ({
   },
 
   unrevertSession: async () => {
-    const client = clientFor(get().currentSession?.directory)
+    const engine = engineFor(get().currentSession?.directory)
     const session = get().currentSession
-    if (!client || !session) return
+    if (!engine || !session) return
 
     try {
-      const updated = await client.session.unrevert(session.id)
+      const updated = await engine.unrevert(session.id)
       set((state) => ({
         currentSession: state.currentSession?.id === session.id ? updated : state.currentSession,
       }))

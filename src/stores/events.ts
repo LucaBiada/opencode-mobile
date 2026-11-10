@@ -1,4 +1,5 @@
 import { create } from "zustand"
+import { directorylessEngine, engineFor } from "../engines"
 import { useConnections } from "./connections"
 import { useSessions, abortedSessions } from "./sessions"
 import { send as notify } from "../lib/notifications"
@@ -142,13 +143,10 @@ async function resyncBusySessions() {
         const session =
           sessionsState.sessions.find((s) => s.id === sessionID) ??
           (sessionsState.currentSession?.id === sessionID ? sessionsState.currentSession : undefined)
-        const connState = useConnections.getState()
-        const client = session?.directory
-          ? connState.clientForDirectory(session.directory) ?? connState.client
-          : connState.client
-        if (!client) return
+        const engine = engineFor(session?.directory)
+        if (!engine) return
 
-        const response = await client.session.messages(sessionID)
+        const response = await engine.getMessages(sessionID)
         const messages = (response || []).map((m) => m.info)
         if (!isSessionActuallyIdle(messages)) return // server says still busy - leave it alone
 
@@ -190,8 +188,8 @@ export const useEvents = create<EventsState>((set, get) => ({
       reconnectTimer = null
     }
 
-    const client = useConnections.getState().client
-    if (!client) return
+    const engine = directorylessEngine()
+    if (!engine) return
 
     controller = new AbortController()
     const currentController = controller
@@ -250,7 +248,7 @@ export const useEvents = create<EventsState>((set, get) => ({
       }
 
       try {
-        for await (const event of client.global.events(currentController.signal)) {
+        for await (const event of engine.events(currentController.signal)) {
           if (currentController.signal.aborted) break
 
           // The stream is genuinely live again (we're actually receiving

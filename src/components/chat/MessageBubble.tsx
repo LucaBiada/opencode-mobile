@@ -104,7 +104,7 @@ export const MessageBubble = memo(
             ) : null}
             {onSelectText && hasSelectableContent(parts) ? (
               <TouchableOpacity hitSlop={10} onPress={() => onSelectText(message.id)}>
-                <Ionicons name="scan-outline" size={19} color={colors.muted} />
+                <Ionicons name="copy-outline" size={18} color={colors.muted} />
               </TouchableOpacity>
             ) : null}
             {message.tokens ? (

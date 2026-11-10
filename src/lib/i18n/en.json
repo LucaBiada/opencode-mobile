@@ -70,6 +70,11 @@
       "dark": "Dark",
       "light": "Light"
     },
+    "phoneMode": {
+      "title": "Phone mode",
+      "label": "On-device chat",
+      "description": "Use your OpenCode Go key, no computer"
+    },
     "footer": {
       "appName": "Devmote",
       "tagline": "Connect to your AI coding assistant from anywhere"
@@ -253,6 +258,8 @@
   },
   "sessionsList": {
     "untitledSession": "Untitled Session",
+    "phoneChat": "Phone chat (no computer)",
+    "phoneChatHint": "Uses your OpenCode Go key",
     "time": {
       "justNow": "Just now",
       "minutesAgo": "{{count}}m ago",

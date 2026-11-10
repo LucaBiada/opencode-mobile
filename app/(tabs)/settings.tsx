@@ -286,11 +286,11 @@ export default function SettingsScreen() {
         />
       </SettingSection>
 
-      <SettingSection title="Phone mode" isDark={isDark}>
+      <SettingSection title={t("settings.phoneMode.title")} isDark={isDark}>
         <SettingRow
           icon="phone-portrait-outline"
-          label="On-device chat"
-          description="Use your OpenCode Go key, no computer"
+          label={t("settings.phoneMode.label")}
+          description={t("settings.phoneMode.description")}
           isDark={isDark}
           onPress={() => router.push("/phone")}
           right={<Ionicons name="chevron-forward" size={20} color={colors.muted} />}

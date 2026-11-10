@@ -70,6 +70,11 @@
       "dark": "深色",
       "light": "浅色"
     },
+    "phoneMode": {
+      "title": "手机模式",
+      "label": "设备端聊天",
+      "description": "使用 OpenCode Go 密钥，无需电脑"
+    },
     "footer": {
       "appName": "Devmote",
       "tagline": "随时随地连接您的 AI 编程助手"
@@ -253,6 +258,8 @@
   },
   "sessionsList": {
     "untitledSession": "未命名会话",
+    "phoneChat": "手机聊天（无需电脑）",
+    "phoneChatHint": "使用 OpenCode Go 密钥",
     "time": {
       "justNow": "刚刚",
       "minutesAgo": "{{count}} 分钟前",

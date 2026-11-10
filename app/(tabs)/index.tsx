@@ -754,8 +754,10 @@ export default function SessionsScreen() {
               >
                 <Ionicons name="phone-portrait-outline" size={18} color={colors.accent} />
                 <View style={styles.projectRowContent}>
-                  <Text style={[styles.projectRowName, isDark && styles.textDark]}>Phone chat (no computer)</Text>
-                  <Text style={[styles.projectRowPath, isDark && styles.metaDark]}>Uses your OpenCode Go key</Text>
+                  <Text style={[styles.projectRowName, isDark && styles.textDark]}>
+                    {t("sessionsList.phoneChat")}
+                  </Text>
+                  <Text style={[styles.projectRowPath, isDark && styles.metaDark]}>{t("sessionsList.phoneChatHint")}</Text>
                 </View>
                 <Ionicons name="chevron-forward" size={16} color={colors.muted} />
               </TouchableOpacity>

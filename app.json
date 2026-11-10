@@ -10,7 +10,7 @@
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#0F172A"
+      "backgroundColor": "#141415"
     },
     "ios": {
       "supportsTablet": true,
@@ -25,7 +25,7 @@
         "NSMicrophoneUsageDescription": "Devmote uses the microphone to capture your voice when using speech-to-text input.",
         "NSPhotoLibraryUsageDescription": "Devmote can attach images from your photo library to messages to your AI coding agent.",
         "NSCameraUsageDescription": "Devmote can capture images with your camera and attach them to messages to your AI coding agent.",
-        "NSLocalNetworkUsageDescription": "Devmote uses your local network to connect to self-hosted OpenCode servers running on your LAN.",
+        "NSLocalNetworkUsageDescription": "Devmote uses your local network to connect to self-hosted coding servers running on your LAN.",
         "NSAppTransportSecurity": {
           "NSAllowsArbitraryLoads": true,
           "NSAllowsArbitraryLoadsInWebContent": false
@@ -38,7 +38,7 @@
       "versionCode": 1,
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#0F172A"
+        "backgroundColor": "#141415"
       }
     },
     "web": {

@@ -70,6 +70,11 @@
       "dark": "Тёмная",
       "light": "Светлая"
     },
+    "phoneMode": {
+      "title": "Режим телефона",
+      "label": "Чат на устройстве",
+      "description": "Используйте ключ OpenCode Go — компьютер не нужен"
+    },
     "footer": {
       "appName": "Devmote",
       "tagline": "Подключайтесь к вашему AI-ассистенту для кода откуда угодно"
@@ -253,6 +258,8 @@
   },
   "sessionsList": {
     "untitledSession": "Сессия без названия",
+    "phoneChat": "Чат на телефоне (без компьютера)",
+    "phoneChatHint": "Использует ключ OpenCode Go",
     "time": {
       "justNow": "Только что",
       "minutesAgo": "{{count}} мин назад",

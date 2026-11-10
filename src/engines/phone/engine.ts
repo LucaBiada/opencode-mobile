@@ -4,6 +4,7 @@ import type { Engine, ProviderList, PromptInput } from "../types"
 import type { Event, Message, Part, Session } from "../../lib/sdk"
 import { getGoApiKey } from "../../lib/phone/key"
 import { phoneChatModel } from "../../lib/phone/provider"
+import { createPhoneTools } from "./tools"
 import {
   completePhoneMessage,
   deletePhoneSession,
@@ -20,12 +21,14 @@ import {
 // limits so the model does not promise work it cannot do.
 const SYSTEM_PROMPT = [
   "You are Devmote, an AI coding assistant running entirely on the user's Android phone.",
-  "You can read and write chat messages only: this version has no shell, no file system and no network tools.",
-  "If a request needs code execution or file access, say what you would do and ask the user to run it.",
+  "You can read, search, create and edit files inside a dedicated workspace using your tools.",
+  "You cannot run shell commands, install packages, build or test code, and you have no network tools.",
+  "Ask for approval-worthy changes normally: writes and edits are shown to the user for approval before they happen.",
+  "If a task needs execution, make the change you can and tell the user what to run.",
   "Answer in the language the user writes in. Prefer short, concrete answers with code blocks where useful.",
 ].join(" ")
 
-const MAX_STEPS = 1
+const MAX_STEPS = 25
 
 function id(prefix: string): string {
   return `${prefix}_${Date.now().toString(36)}${Math.random().toString(36).slice(2, 8)}`
@@ -44,8 +47,37 @@ export function createPhoneEngine(): Engine {
   const listeners = new Set<Listener>()
   const aborts = new Map<string, AbortController>()
 
+  // Permission gating for mutating tools. "always" is scoped to the session,
+  // matching the spec's "Always allow (this session)".
+  const approvals = new Map<string, { sessionID: string; settle: (reply: "once" | "always" | "reject") => void }>()
+  const alwaysAllow = new Set<string>()
+
   const emit = (event: Event) => {
     for (const listener of listeners) listener(event)
+  }
+
+  const approvalGate = (sessionID: string) => async (
+    toolName: string,
+    input: Record<string, unknown>,
+    preview?: string,
+  ): Promise<void> => {
+    const key = `${sessionID}:${toolName}`
+    if (alwaysAllow.has(key)) return
+    const requestID = id("p_perm")
+    emit({ type: "permission.asked", properties: { id: requestID, sessionID, tool: toolName, input, preview } })
+    await new Promise<void>((resolve, reject) => {
+      approvals.set(requestID, {
+        sessionID,
+        settle: (reply) => {
+          if (reply === "reject") {
+            reject(new Error(`The user rejected the ${toolName} tool call.`))
+            return
+          }
+          if (reply === "always") alwaysAllow.add(key)
+          resolve()
+        },
+      })
+    })
   }
 
   const engine: Engine = {
@@ -140,6 +172,7 @@ export function createPhoneEngine(): Engine {
           model: phoneChatModel({ apiKey, modelID, sessionID }),
           system: SYSTEM_PROMPT,
           messages: history,
+          tools: createPhoneTools(sessionID, approvalGate(sessionID)),
           abortSignal: controller.signal,
           maxRetries: 1,
           stopWhen: stepCountIs(MAX_STEPS),
@@ -147,8 +180,42 @@ export function createPhoneEngine(): Engine {
 
         let textBuffer = ""
         let reasoningBuffer = ""
+        const toolParts = new Map<string, Part>()
 
         for await (const chunk of result.fullStream) {
+          if (chunk.type === "tool-call") {
+            const part: Part = {
+              id: id("p_part"),
+              messageID: assistant.id,
+              type: "tool",
+              tool: chunk.toolName,
+              callID: chunk.toolCallId,
+              state: { status: "running", input: chunk.input },
+            }
+            toolParts.set(chunk.toolCallId, part)
+            emit({ type: "part.updated", properties: { part } })
+            continue
+          }
+          if (chunk.type === "tool-result") {
+            const part = toolParts.get(chunk.toolCallId)
+            if (part) {
+              part.state = { ...part.state, status: "completed", output: chunk.output }
+              emit({ type: "part.updated", properties: { part } })
+            }
+            continue
+          }
+          if (chunk.type === "tool-error") {
+            const part = toolParts.get(chunk.toolCallId)
+            if (part) {
+              part.state = {
+                ...part.state,
+                status: "error",
+                error: { message: chunk.error instanceof Error ? chunk.error.message : String(chunk.error) },
+              }
+              emit({ type: "part.updated", properties: { part } })
+            }
+            continue
+          }
           if (chunk.type === "text-delta") {
             textBuffer += chunk.text
             textPart.text = textBuffer
@@ -186,6 +253,8 @@ export function createPhoneEngine(): Engine {
 
         await upsertPhonePart(textPart, 0)
         if (reasoningPart) await upsertPhonePart(reasoningPart, 1)
+        let seq = 2
+        for (const part of toolParts.values()) await upsertPhonePart(part, seq++)
         await completePhoneMessage(assistant.id, {
           completed: assistant.time.completed ?? Date.now(),
           tokens: assistant.tokens,
@@ -208,6 +277,13 @@ export function createPhoneEngine(): Engine {
     },
 
     abort: async (sessionID) => {
+      // Reject anything waiting on the user before the stream unwinds, or the
+      // tool loop would stay parked on a promise nobody can answer.
+      for (const [requestID, entry] of approvals) {
+        if (entry.sessionID !== sessionID) continue
+        approvals.delete(requestID)
+        entry.settle("reject")
+      }
       const controller = aborts.get(sessionID)
       if (!controller) return false
       controller.abort()
@@ -222,7 +298,13 @@ export function createPhoneEngine(): Engine {
     },
 
     listPermissions: async () => [],
-    replyPermission: async () => false,
+    replyPermission: async (requestID, reply) => {
+      const entry = approvals.get(requestID)
+      if (!entry) return false
+      approvals.delete(requestID)
+      entry.settle(reply)
+      return true
+    },
     listQuestions: async () => [],
     replyQuestion: async () => false,
     rejectQuestion: async () => false,

@@ -28,6 +28,7 @@ export default function PhoneChatScreen() {
   const [input, setInput] = useState("")
   const [sending, setSending] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [approval, setApproval] = useState<{ id: string; tool: string; preview?: string } | null>(null)
   const scroll = useRef<ScrollView>(null)
 
   const upsertMessage = useCallback((message: Message) => {
@@ -78,8 +79,17 @@ export default function PhoneChatScreen() {
           if (part) upsertPart(part)
           continue
         }
+        if (event.type === "permission.asked") {
+          setApproval({
+            id: String(payload.id),
+            tool: String(payload.tool),
+            preview: typeof payload.preview === "string" ? payload.preview : undefined,
+          })
+          continue
+        }
         if (event.type === "session.idle") {
           setSending(false)
+          setApproval(null)
           continue
         }
         if (event.type === "session.error") {
@@ -118,6 +128,13 @@ export default function PhoneChatScreen() {
     if (id) await phoneEngine.abort(id)
   }
 
+  const decide = async (reply: "once" | "always" | "reject") => {
+    if (!approval) return
+    const requestID = approval.id
+    setApproval(null)
+    await phoneEngine.replyPermission(requestID, reply)
+  }
+
   return (
     <KeyboardAvoidingView
       style={[styles.container, isDark && styles.containerDark]}
@@ -145,6 +162,32 @@ export default function PhoneChatScreen() {
       </ScrollView>
 
       <View style={[styles.composer, isDark && styles.composerDark]}>
+        {approval ? (
+          <View style={styles.approvalWrap}>
+            <View style={[styles.approval, isDark && styles.approvalDark]}>
+              <Text style={[styles.approvalTitle, isDark && styles.textDark]}>
+                Allow {approval.tool}?
+              </Text>
+              {approval.preview ? (
+                <Text style={[styles.approvalPreview, isDark && styles.hintDark]} numberOfLines={6}>
+                  {approval.preview}
+                </Text>
+              ) : null}
+              <View style={styles.approvalActions}>
+                <TouchableOpacity style={[styles.approvalButton, styles.approvalDanger]} onPress={() => void decide("reject")}>
+                  <Text style={styles.approvalButtonText}>Reject</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={[styles.approvalButton, styles.approvalNeutral]} onPress={() => void decide("always")}>
+                  <Text style={styles.approvalButtonText}>Always</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={[styles.approvalButton, styles.approvalPrimary]} onPress={() => void decide("once")}>
+                  <Text style={styles.approvalButtonText}>Allow once</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        ) : null}
+        <View style={styles.composerRow}>
         <TextInput
           style={[styles.input, isDark && styles.inputDark]}
           value={input}
@@ -162,6 +205,7 @@ export default function PhoneChatScreen() {
         >
           <Ionicons name={sending ? "stop" : "arrow-up"} size={20} color="#fff" />
         </TouchableOpacity>
+        </View>
       </View>
     </KeyboardAvoidingView>
   )
@@ -176,13 +220,35 @@ const styles = StyleSheet.create({
   workingText: { color: "#666", fontSize: 13 },
   error: { color: "#dc2626", padding: 12 },
   composer: {
-    flexDirection: "row",
-    alignItems: "flex-end",
+    flexDirection: "column",
     gap: 8,
     padding: 10,
     borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: "#e5e5e5",
   },
+  composerRow: { flexDirection: "row", alignItems: "flex-end", gap: 8 },
+  approvalWrap: { paddingBottom: 4 },
+  approval: {
+    borderWidth: 1,
+    borderColor: "#f59e0b",
+    backgroundColor: "#fffbeb",
+    borderRadius: 12,
+    padding: 12,
+    gap: 8,
+  },
+  approvalDark: { backgroundColor: "#221a05", borderColor: "#b45309" },
+  approvalTitle: { fontWeight: "700", color: "#0a0a0a" },
+  approvalPreview: {
+    fontFamily: Platform.select({ ios: "Menlo", android: "monospace" }),
+    fontSize: 12,
+    color: "#444",
+  },
+  approvalActions: { flexDirection: "row", gap: 8, justifyContent: "flex-end" },
+  approvalButton: { paddingVertical: 8, paddingHorizontal: 12, borderRadius: 8 },
+  approvalDanger: { backgroundColor: "#dc2626" },
+  approvalNeutral: { backgroundColor: "#525252" },
+  approvalPrimary: { backgroundColor: "#4f46e5" },
+  approvalButtonText: { color: "#fff", fontWeight: "600", fontSize: 13 },
   composerDark: { borderTopColor: "#222", backgroundColor: "#0a0a0a" },
   input: {
     flex: 1,
@@ -206,5 +272,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   sendStop: { backgroundColor: "#dc2626" },
+  textDark: { color: "#fff" },
   hintDark: { color: "#999" },
 })

@@ -20,6 +20,7 @@ import { router, useFocusEffect } from "expo-router"
 import { Ionicons } from "@expo/vector-icons"
 import { useTranslation } from "react-i18next"
 import { useSessions } from "../../src/stores/sessions"
+import { phoneEngine } from "../../src/engines/phone/engine"
 import { useConnections } from "../../src/stores/connections"
 import { useEvents } from "../../src/stores/events"
 import { useCatalog } from "../../src/stores/catalog"
@@ -57,7 +58,13 @@ function SessionItem({
 }) {
   const { t } = useTranslation()
 
+  const isPhone = session.projectID === "phone"
+
   const onPress = () => {
+    if (isPhone) {
+      router.push({ pathname: `/phone/[id]`, params: { id: session.id } })
+      return
+    }
     router.push({
       pathname: `/session/[id]`,
       params: { id: session.id, ...(session.directory ? { directory: session.directory } : {}) },
@@ -67,7 +74,8 @@ function SessionItem({
   const onLongPress = () => {
     Alert.alert(session.title || t("sessionsList.untitledSession"), undefined, [
       { text: t("common.cancel"), style: "cancel" },
-      { text: t("sessionsList.actions.rename"), onPress: onRename },
+      // Phone sessions have no server-side rename yet.
+      ...(isPhone ? [] : [{ text: t("sessionsList.actions.rename"), onPress: onRename }]),
       { text: t("common.delete"), style: "destructive", onPress: onDelete },
     ])
   }
@@ -99,8 +107,8 @@ function SessionItem({
           </Text>
           {shortDir && (
             <View style={styles.sessionDirBadge}>
-              <Ionicons name="folder-outline" size={12} color={isDark ? "#888888" : "#666666"} />
-              <Text style={[styles.sessionDirText, isDark && styles.metaDark]}>{shortDir}</Text>
+              <Ionicons name={isPhone ? "phone-portrait-outline" : "folder-outline"} size={12} color={isDark ? "#888888" : "#666666"} />
+              <Text style={[styles.sessionDirText, isDark && styles.metaDark]}>{isPhone ? "Phone" : shortDir}</Text>
             </View>
           )}
         </View>
@@ -198,6 +206,7 @@ export default function SessionsScreen() {
   // Directories collapsed in the grouped session list. Empty by default —
   // all groups start expanded (#67).
   const [collapsedDirs, setCollapsedDirs] = useState<Set<string>>(new Set())
+  const [phoneSessions, setPhoneSessions] = useState<Session[]>([])
 
   const toggleGroup = useCallback((directory: string) => {
     setCollapsedDirs((prev) => {
@@ -208,12 +217,23 @@ export default function SessionsScreen() {
     })
   }, [])
 
+  // Phone sessions live on the device, so they are loaded from their own engine
+  // and merged into the same list. `directory` is only a display grouping here;
+  // the phone store keeps its own model of where a session lives.
+  const allSessions = useMemo(
+    () =>
+      [...sessions, ...phoneSessions.map((session) => ({ ...session, directory: "On this phone" }))].sort(
+        (left, right) => right.time.updated - left.time.updated,
+      ),
+    [sessions, phoneSessions],
+  )
+
   // Flatten sessions into header+item rows. Skip headers entirely when
   // everything lives in one directory — a lone header adds noise, not clarity.
   const rows = useMemo<ListRow[]>(() => {
-    const groups = groupByDirectory(sessions)
+    const groups = groupByDirectory(allSessions)
     if (groups.length <= 1) {
-      return sessions.map((session) => ({ type: "session", session }))
+      return allSessions.map((session) => ({ type: "session", session }))
     }
     const out: ListRow[] = []
     for (const group of groups) {
@@ -230,7 +250,7 @@ export default function SessionsScreen() {
       }
     }
     return out
-  }, [sessions, collapsedDirs])
+  }, [allSessions, collapsedDirs])
 
   // Fetch server-known projects when the new session modal opens
   useEffect(() => {
@@ -253,6 +273,10 @@ export default function SessionsScreen() {
 
   useFocusEffect(
     useCallback(() => {
+      void phoneEngine
+        .listSessions()
+        .then(setPhoneSessions)
+        .catch(() => setPhoneSessions([]))
       if (client) {
         loadSessions()
         refreshProject()
@@ -307,6 +331,11 @@ export default function SessionsScreen() {
             style: "destructive",
             onPress: async () => {
               try {
+                if (session.projectID === "phone") {
+                  await phoneEngine.deleteSession(session.id)
+                  setPhoneSessions(await phoneEngine.listSessions())
+                  return
+                }
                 await deleteSession(session.id)
               } catch (err) {
                 console.error("Delete failed:", err)
@@ -704,6 +733,25 @@ export default function SessionsScreen() {
                     })}
                 </>
               )}
+
+              {/* Phone mode: on-device chat, no computer involved */}
+              <TouchableOpacity
+                style={[styles.projectRow, isDark && styles.projectRowDark, { marginTop: 16 }]}
+                onPress={async () => {
+                  const session = await phoneEngine.createSession({ title: "New chat" })
+                  setShowNewSession(false)
+                  router.push({ pathname: "/phone/[id]", params: { id: session.id } })
+                }}
+                disabled={isCreating}
+                testID="new-phone-chat"
+              >
+                <Ionicons name="phone-portrait-outline" size={18} color={isDark ? "#8b5cf6" : "#6d28d9"} />
+                <View style={styles.projectRowContent}>
+                  <Text style={[styles.projectRowName, isDark && styles.textDark]}>Phone chat (no computer)</Text>
+                  <Text style={[styles.projectRowPath, isDark && styles.metaDark]}>Uses your OpenCode Go key</Text>
+                </View>
+                <Ionicons name="chevron-forward" size={16} color={isDark ? "#666666" : "#999999"} />
+              </TouchableOpacity>
 
               {/* Browse the server's filesystem instead of typing a path */}
               <TouchableOpacity

@@ -124,12 +124,13 @@ function BulletRow({
   positive: boolean
 }) {
   const styles = useThemedStyles()
+  const colors = useTheme()
   return (
     <View style={styles.bulletRow}>
       <Ionicons
         name={icon}
         size={18}
-        color={positive ? "#22c55e" : "#ef4444"}
+        color={positive ? colors.success : colors.danger}
         style={styles.bulletIcon}
       />
       <Text style={[styles.bulletText, isDark && styles.bodyDark]}>{text}</Text>

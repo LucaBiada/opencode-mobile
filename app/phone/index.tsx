@@ -1,4 +1,4 @@
-﻿import { useCallback, useMemo, useState } from "react"
+import { useCallback, useMemo, useState } from "react"
 import {
   ActivityIndicator,
   Alert,
@@ -177,7 +177,7 @@ export default function PhoneModeScreen() {
               autoCorrect={false}
               keyboardType="url"
               placeholder="http://192.168.1.9:11434/v1"
-              placeholderTextColor={isDark ? "#666" : "#999"}
+              placeholderTextColor={colors.muted}
               testID="provider-url"
             />
             {current.builtin && providerID !== DEFAULT_PROVIDER_ID ? (
@@ -194,7 +194,7 @@ export default function PhoneModeScreen() {
                   value={keyInput}
                   onChangeText={setKeyInput}
                   placeholder={hasKey ? "Key saved — paste a new one to replace" : "oc_sk_…"}
-                  placeholderTextColor={isDark ? "#666" : "#999"}
+                  placeholderTextColor={colors.muted}
                   autoCapitalize="none"
                   autoCorrect={false}
                   secureTextEntry
@@ -204,7 +204,7 @@ export default function PhoneModeScreen() {
             ) : null}
 
             <TouchableOpacity style={[styles.button, busy && styles.buttonDisabled]} onPress={saveProvider} disabled={busy} testID="provider-save">
-              {busy ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>Save & test</Text>}
+              {busy ? <ActivityIndicator color={colors.onAccent} /> : <Text style={styles.buttonText}>Save & test</Text>}
             </TouchableOpacity>
             {error ? <Text style={styles.error}>{error}</Text> : null}
 
@@ -234,7 +234,7 @@ export default function PhoneModeScreen() {
               disabled={!modelID || busy}
               testID="start-phone-chat"
             >
-              <Ionicons name="add" size={18} color="#fff" />
+              <Ionicons name="add" size={18} color={colors.onAccent} />
               <Text style={styles.buttonText}>New phone chat</Text>
             </TouchableOpacity>
           </>
@@ -259,7 +259,7 @@ export default function PhoneModeScreen() {
                   {session.version} · {new Date(session.time.updated).toLocaleString()}
                 </Text>
               </View>
-              <Ionicons name="chevron-forward" size={18} color={isDark ? "#888" : "#666"} />
+              <Ionicons name="chevron-forward" size={18} color={colors.muted} />
             </TouchableOpacity>
           ))
         )}
@@ -270,12 +270,12 @@ export default function PhoneModeScreen() {
 
 function createStyles(colors: Theme) {
   return StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#fff" },
-  containerDark: { backgroundColor: "#0a0a0a" },
+  container: { flex: 1, backgroundColor: colors.panel },
+  containerDark: { backgroundColor: colors.bg },
   content: { padding: 20, paddingBottom: 40 },
-  heading: { fontSize: 22, fontWeight: "700", color: "#0a0a0a" },
-  sub: { fontSize: 13, color: "#666", marginTop: 6, lineHeight: 19 },
-  label: { fontSize: 13, fontWeight: "600", color: "#0a0a0a", marginTop: 20 },
+  heading: { fontSize: 22, fontWeight: "700", color: colors.text },
+  sub: { fontSize: 13, color: colors.muted, marginTop: 6, lineHeight: 19 },
+  label: { fontSize: 13, fontWeight: "600", color: colors.text, marginTop: 20 },
   spaced: { marginTop: 28 },
   input: {
     borderWidth: 1,
@@ -287,8 +287,8 @@ function createStyles(colors: Theme) {
     color: colors.text,
     marginTop: 8,
   },
-  inputDark: { borderColor: "#2a2a2a", backgroundColor: "#141414", color: "#fff" },
-  hint: { fontSize: 12, color: "#666", marginTop: 6 },
+  inputDark: { borderColor: colors.border, backgroundColor: colors.panelAlt, color: colors.onAccent },
+  hint: { fontSize: 12, color: colors.muted, marginTop: 6 },
   button: {
     flexDirection: "row",
     alignItems: "center",
@@ -299,16 +299,16 @@ function createStyles(colors: Theme) {
     paddingVertical: 12,
     marginTop: 10,
   },
-  primary: { backgroundColor: "#4f46e5" },
+  primary: { backgroundColor: colors.accent },
   buttonDisabled: { opacity: 0.5 },
-  buttonText: { color: "#fff", fontWeight: "600" },
-  error: { color: "#dc2626", marginTop: 10, fontSize: 13 },
+  buttonText: { color: colors.onAccent, fontWeight: "600" },
+  error: { color: colors.danger, marginTop: 10, fontSize: 13 },
   models: { flexDirection: "row", flexWrap: "wrap", gap: 8, marginTop: 8 },
-  modelChip: { borderWidth: 1, borderColor: "#d4d4d4", borderRadius: 999, paddingHorizontal: 12, paddingVertical: 6 },
-  modelChipActive: { backgroundColor: "#4f46e5", borderColor: "#4f46e5" },
+  modelChip: { borderWidth: 1, borderColor: colors.border, borderRadius: 999, paddingHorizontal: 12, paddingVertical: 6 },
+  modelChipActive: { backgroundColor: colors.accent, borderColor: colors.accent },
   modelText: { fontSize: 12, color: colors.panelAlt },
-  modelTextActive: { color: "#fff", fontWeight: "600" },
-  empty: { color: "#666", marginTop: 8 },
+  modelTextActive: { color: colors.onAccent, fontWeight: "600" },
+  empty: { color: colors.muted, marginTop: 8 },
   sessionRow: {
     flexDirection: "row",
     alignItems: "center",
@@ -317,11 +317,11 @@ function createStyles(colors: Theme) {
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: colors.border,
   },
-  sessionRowDark: { borderBottomColor: "#222" },
+  sessionRowDark: { borderBottomColor: colors.panelAlt },
   sessionText: { flex: 1, paddingRight: 12 },
-  sessionTitle: { fontSize: 15, fontWeight: "600", color: "#0a0a0a" },
-  sessionMeta: { fontSize: 12, color: "#666", marginTop: 2 },
-  textDark: { color: "#fff" },
-  hintDark: { color: "#999" },
+  sessionTitle: { fontSize: 15, fontWeight: "600", color: colors.text },
+  sessionMeta: { fontSize: 12, color: colors.muted, marginTop: 2 },
+  textDark: { color: colors.onAccent },
+  hintDark: { color: colors.muted },
   })
 }

@@ -1,4 +1,6 @@
+import { useMemo } from "react"
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native"
+import { useTheme, type Theme } from "../../theme"
 import { Ionicons } from "@expo/vector-icons"
 import BottomSheet, { BottomSheetBackdrop, BottomSheetFlatList } from "@gorhom/bottom-sheet"
 import { useTranslation } from "react-i18next"
@@ -17,7 +19,14 @@ interface Props {
   sheetRef: React.RefObject<BottomSheet | null>
 }
 
+function useThemedStyles() {
+  const colors = useTheme()
+  return useMemo(() => createStyles(colors), [colors])
+}
+
 export function VariantPicker({ variants, selected, isDark, onSelect, sheetRef }: Props) {
+  const s = useThemedStyles()
+  const colors = useTheme()
   const { t } = useTranslation()
 
   const effortDescriptions: Record<string, string> = {
@@ -55,7 +64,7 @@ export function VariantPicker({ variants, selected, isDark, onSelect, sheetRef }
       enableDynamicSizing={false}
       enablePanDownToClose
       backgroundStyle={isDark ? s.sheetDark : s.sheet}
-      handleIndicatorStyle={{ backgroundColor: isDark ? "#666666" : "#cccccc" }}
+      handleIndicatorStyle={{ backgroundColor: colors.muted }}
       backdropComponent={(props) => (
         <BottomSheetBackdrop {...props} disappearsOnIndex={-1} appearsOnIndex={0} opacity={0.5} />
       )}
@@ -78,7 +87,7 @@ export function VariantPicker({ variants, selected, isDark, onSelect, sheetRef }
                 <Text style={[s.rowName, isDark && s.textWhite]}>{item.label}</Text>
                 <Text style={[s.rowDesc, isDark && s.metaDark]}>{item.description}</Text>
               </View>
-              {active && <Ionicons name="checkmark-circle" size={20} color="#8b5cf6" />}
+              {active && <Ionicons name="checkmark-circle" size={20} color={colors.accent} />}
             </TouchableOpacity>
           )
         }}
@@ -88,13 +97,14 @@ export function VariantPicker({ variants, selected, isDark, onSelect, sheetRef }
   )
 }
 
-const s = StyleSheet.create({
-  sheet: { backgroundColor: "#ffffff" },
-  sheetDark: { backgroundColor: "#1a1a1a" },
+function createStyles(colors: Theme) {
+  return StyleSheet.create({
+  sheet: { backgroundColor: colors.panel },
+  sheetDark: { backgroundColor: colors.panel },
   header: { paddingHorizontal: 16, paddingBottom: 12 },
-  title: { fontSize: 18, fontWeight: "700", color: "#0a0a0a" },
-  textWhite: { color: "#ffffff" },
-  metaDark: { color: "#666666" },
+  title: { fontSize: 18, fontWeight: "700", color: colors.text },
+  textWhite: { color: colors.onAccent },
+  metaDark: { color: colors.muted },
   content: { paddingBottom: 40 },
   row: {
     flexDirection: "row",
@@ -102,12 +112,13 @@ const s = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 14,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: "#e5e5e5",
+    borderBottomColor: colors.border,
   },
-  rowDark: { borderBottomColor: "#2a2a2a" },
-  rowSelected: { backgroundColor: "#f5f3ff" },
-  rowSelectedDark: { backgroundColor: "#1f1a2e" },
+  rowDark: { borderBottomColor: colors.border },
+  rowSelected: { backgroundColor: colors.accentSoft },
+  rowSelectedDark: { backgroundColor: colors.accentSoft },
   rowText: { flex: 1 },
-  rowName: { fontSize: 15, fontWeight: "600", color: "#0a0a0a" },
-  rowDesc: { fontSize: 12, color: "#999999", marginTop: 2 },
-})
+  rowName: { fontSize: 15, fontWeight: "600", color: colors.text },
+  rowDesc: { fontSize: 12, color: colors.muted, marginTop: 2 },
+  })
+}

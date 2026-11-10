@@ -7,6 +7,7 @@ import { MessageBubble, PermissionPrompt } from "../src/components/chat"
 import { buildDemoScript, buildDemoCompletionMessage, buildDemoDenialMessage } from "../src/lib/demo-script"
 import { SETUP_GUIDE_URL } from "../src/lib/links"
 import { track, AnalyticsEvent } from "../src/lib/analytics"
+import { useTheme, type Theme } from "../src/theme"
 import {
   demoStepAdvancedProps,
   demoCompletedOutcome,
@@ -21,10 +22,17 @@ import {
 // create a real session, touch the network, or corrupt real app state. The
 // permission "reply" only flips local component state (below); it never
 // calls sessionClient.permission.reply the way app/session/[id].tsx does.
+function useThemedStyles() {
+  const colors = useTheme()
+  return useMemo(() => createStyles(colors), [colors])
+}
+
 export default function DemoScreen() {
   const router = useRouter()
   const colorScheme = useColorScheme()
   const isDark = colorScheme === "dark"
+  const s = useThemedStyles()
+  const colors = useTheme()
   const { t } = useTranslation()
 
   // Built once per mount from pure, hardcoded data (src/lib/demo-script.ts).
@@ -58,10 +66,18 @@ export default function DemoScreen() {
 
   return (
     <>
-      <Stack.Screen options={{ title: t("demo.title"), presentation: "card" }} />
-      <View style={[s.container, isDark && s.containerDark]} testID="demo-screen">
-        <View style={[s.banner, isDark && s.bannerDark]} testID="demo-banner">
-          <Ionicons name="play-circle-outline" size={16} color="#8b5cf6" />
+      <Stack.Screen
+        options={{
+          title: t("demo.title"),
+          presentation: "card",
+          headerStyle: { backgroundColor: colors.bg },
+          headerShadowVisible: false,
+          headerTintColor: colors.text,
+        }}
+      />
+      <View style={s.container} testID="demo-screen">
+        <View style={s.banner} testID="demo-banner">
+          <Ionicons name="play-circle-outline" size={16} color={colors.accent} />
           <Text style={s.bannerText}>{t("demo.banner")}</Text>
         </View>
 
@@ -71,18 +87,12 @@ export default function DemoScreen() {
 
           {!reply && <PermissionPrompt permission={script.permission} isDark={isDark} onReply={handleReply} />}
 
-          {completion && (
-            <MessageBubble message={completion.message} parts={completion.parts} isDark={isDark} />
-          )}
+          {completion && <MessageBubble message={completion.message} parts={completion.parts} isDark={isDark} />}
 
-          <View style={[s.ctaCard, isDark && s.ctaCardDark]} testID="demo-cta-card">
-            <Text style={[s.ctaTitle, isDark && s.textWhite]}>{t("demo.ctaTitle")}</Text>
-            <Text style={[s.ctaSubtitle, isDark && s.metaDark]}>{t("demo.ctaSubtitle")}</Text>
-            <TouchableOpacity
-              style={s.connectButton}
-              onPress={handleConnectPress}
-              testID="demo-connect-button"
-            >
+          <View style={s.ctaCard} testID="demo-cta-card">
+            <Text style={s.ctaTitle}>{t("demo.ctaTitle")}</Text>
+            <Text style={s.ctaSubtitle}>{t("demo.ctaSubtitle")}</Text>
+            <TouchableOpacity style={s.connectButton} onPress={handleConnectPress} testID="demo-connect-button">
               <Text style={s.connectButtonText}>{t("demo.connectButton")}</Text>
             </TouchableOpacity>
             <TouchableOpacity
@@ -99,47 +109,41 @@ export default function DemoScreen() {
   )
 }
 
-const s = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#ffffff" },
-  containerDark: { backgroundColor: "#0a0a0a" },
-  textWhite: { color: "#ffffff" },
-  metaDark: { color: "#888888" },
-
-  banner: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    backgroundColor: "#f5f3ff",
-    borderBottomWidth: 1,
-    borderBottomColor: "#e9d5ff",
-  },
-  bannerDark: { backgroundColor: "#1a1030", borderBottomColor: "#2a1a4a" },
-  bannerText: { fontSize: 13, fontWeight: "600", color: "#6d28d9", flex: 1 },
-
-  scrollContent: { padding: 16, paddingBottom: 40 },
-
-  ctaCard: {
-    marginTop: 8,
-    padding: 20,
-    borderRadius: 16,
-    backgroundColor: "#f5f5f5",
-    alignItems: "center",
-  },
-  ctaCardDark: { backgroundColor: "#1a1a1a" },
-  ctaTitle: { fontSize: 17, fontWeight: "700", color: "#0a0a0a", textAlign: "center" },
-  ctaSubtitle: { fontSize: 13, color: "#666666", marginTop: 6, textAlign: "center", lineHeight: 18 },
-  connectButton: {
-    marginTop: 16,
-    backgroundColor: "#0a0a0a",
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 8,
-    width: "100%",
-    alignItems: "center",
-  },
-  connectButtonText: { color: "#ffffff", fontWeight: "600", fontSize: 15 },
-  setupGuideLink: { marginTop: 14 },
-  setupGuideLinkText: { fontSize: 14, fontWeight: "600", color: "#6366f1" },
-})
+function createStyles(colors: Theme) {
+  return StyleSheet.create({
+    container: { flex: 1, backgroundColor: colors.bg },
+    banner: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 8,
+      paddingHorizontal: 16,
+      paddingVertical: 10,
+      backgroundColor: colors.accentSoft,
+    },
+    bannerText: { fontSize: 13, fontWeight: "600", color: colors.accent, flex: 1 },
+    scrollContent: { padding: 16, paddingBottom: 40 },
+    ctaCard: {
+      marginTop: 8,
+      padding: 20,
+      borderRadius: 18,
+      backgroundColor: colors.panel,
+      borderWidth: 1,
+      borderColor: colors.border,
+      alignItems: "center",
+    },
+    ctaTitle: { fontSize: 17, fontWeight: "700", color: colors.text, textAlign: "center" },
+    ctaSubtitle: { fontSize: 13, color: colors.muted, marginTop: 6, textAlign: "center", lineHeight: 18 },
+    connectButton: {
+      marginTop: 16,
+      backgroundColor: colors.accent,
+      paddingHorizontal: 24,
+      paddingVertical: 12,
+      borderRadius: 11,
+      width: "100%",
+      alignItems: "center",
+    },
+    connectButtonText: { color: colors.onAccent, fontWeight: "600", fontSize: 15 },
+    setupGuideLink: { marginTop: 14 },
+    setupGuideLinkText: { fontSize: 14, fontWeight: "600", color: colors.accent },
+  })
+}

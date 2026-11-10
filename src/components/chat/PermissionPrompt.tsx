@@ -1,4 +1,6 @@
+import { useMemo } from "react"
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native"
+import { useTheme, type Theme } from "../../theme"
 import { Ionicons } from "@expo/vector-icons"
 import { useTranslation } from "react-i18next"
 
@@ -8,56 +10,59 @@ interface Props {
   onReply: (reply: "once" | "always" | "reject") => void
 }
 
-export function PermissionPrompt({ permission, isDark, onReply }: Props) {
+function useThemedStyles() {
+  const colors = useTheme()
+  return useMemo(() => createStyles(colors), [colors])
+}
+
+export function PermissionPrompt({ permission, onReply }: Props) {
+  const s = useThemedStyles()
+  const colors = useTheme()
   const { t } = useTranslation()
   return (
-    <View style={[s.card, isDark && s.cardDark]}>
+    <View style={s.card}>
       <View style={s.header}>
-        <Ionicons name="shield-outline" size={18} color="#f59e0b" />
-        <Text style={[s.title, isDark && s.textWhite]}>{t("chat.permissionPrompt.title")}</Text>
+        <Ionicons name="shield-outline" size={18} color={colors.accent} />
+        <Text style={s.title}>{t("chat.permissionPrompt.title")}</Text>
       </View>
-      <Text style={[s.type, isDark && s.typeDark]}>
+      <Text style={s.type}>
         {permission.permission}: {permission.patterns.join(", ")}
       </Text>
       <View style={s.actions}>
         <TouchableOpacity style={[s.btn, s.deny]} onPress={() => onReply("reject")}>
           <Text style={s.denyText}>{t("chat.permissionPrompt.deny")}</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={[s.btn, s.always, isDark && s.alwaysDark]} onPress={() => onReply("always")}>
-          <Text style={[s.alwaysText, isDark && s.textWhite]}>{t("chat.permissionPrompt.always")}</Text>
+        <TouchableOpacity style={[s.btn, s.always]} onPress={() => onReply("always")}>
+          <Text style={s.alwaysText}>{t("chat.permissionPrompt.always")}</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={[s.btn, s.allow, isDark && s.allowDark]} onPress={() => onReply("once")}>
-          <Text style={[s.allowText, isDark && s.allowTextDark]}>{t("chat.permissionPrompt.allow")}</Text>
+        <TouchableOpacity style={[s.btn, s.allow]} onPress={() => onReply("once")}>
+          <Text style={s.allowText}>{t("chat.permissionPrompt.allow")}</Text>
         </TouchableOpacity>
       </View>
     </View>
   )
 }
 
-const s = StyleSheet.create({
-  card: {
-    margin: 12,
-    padding: 16,
-    backgroundColor: "#fffbeb",
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: "#fef3c7",
-  },
-  cardDark: { backgroundColor: "#1a1800", borderColor: "#333300" },
-  header: { flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 8 },
-  title: { fontSize: 15, fontWeight: "600", color: "#92400e" },
-  textWhite: { color: "#ffffff" },
-  type: { fontSize: 13, color: "#78350f", marginBottom: 12 },
-  typeDark: { color: "#d4a574" },
-  actions: { flexDirection: "row", gap: 8 },
-  btn: { flex: 1, paddingVertical: 10, borderRadius: 8, alignItems: "center" },
-  deny: { backgroundColor: "#fef2f2" },
-  denyText: { color: "#dc2626", fontWeight: "600", fontSize: 14 },
-  always: { backgroundColor: "#f5f5f5" },
-  alwaysDark: { backgroundColor: "#2a2a2a" },
-  alwaysText: { color: "#0a0a0a", fontWeight: "600", fontSize: 14 },
-  allow: { backgroundColor: "#0a0a0a" },
-  allowDark: { backgroundColor: "#ffffff" },
-  allowText: { color: "#ffffff", fontWeight: "600", fontSize: 14 },
-  allowTextDark: { color: "#0a0a0a" },
-})
+function createStyles(colors: Theme) {
+  return StyleSheet.create({
+    card: {
+      margin: 12,
+      padding: 16,
+      backgroundColor: colors.panel,
+      borderRadius: 18,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    header: { flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 8 },
+    title: { fontSize: 15, fontWeight: "600", color: colors.text },
+    type: { fontSize: 13, color: colors.muted, marginBottom: 12 },
+    actions: { flexDirection: "row", gap: 8 },
+    btn: { flex: 1, paddingVertical: 10, borderRadius: 11, alignItems: "center" },
+    deny: { backgroundColor: colors.dangerSoft },
+    denyText: { color: colors.danger, fontWeight: "600", fontSize: 14 },
+    always: { backgroundColor: colors.panelAlt },
+    alwaysText: { color: colors.textDim, fontWeight: "600", fontSize: 14 },
+    allow: { backgroundColor: colors.accent },
+    allowText: { color: colors.onAccent, fontWeight: "600", fontSize: 14 },
+  })
+}

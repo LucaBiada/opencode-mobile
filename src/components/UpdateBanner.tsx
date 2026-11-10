@@ -69,7 +69,7 @@ export function UpdateBanner({ isDark }: { isDark: boolean }) {
         <Text style={[styles.action, isDark && styles.actionDark]}>{t("update.action")}</Text>
       </TouchableOpacity>
       <TouchableOpacity onPress={onDismiss} testID="update-banner-dismiss" hitSlop={8}>
-        <Ionicons name="close" size={18} color={isDark ? colors.muted : "#64748b"} />
+        <Ionicons name="close" size={18} color={colors.muted} />
       </TouchableOpacity>
     </View>
   )

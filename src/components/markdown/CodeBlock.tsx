@@ -1,4 +1,6 @@
 import { useState } from "react"
+import { useMemo } from "react"
+import { useTheme, type Theme } from "../../theme"
 import { View, Text, TouchableOpacity, StyleSheet, useColorScheme, Platform } from "react-native"
 import * as Clipboard from "expo-clipboard"
 import { wideTextSelection } from "../../lib/scroll-config"
@@ -8,7 +10,13 @@ interface Props {
   language?: string
 }
 
+function useThemedStyles() {
+  const colors = useTheme()
+  return useMemo(() => createStyles(colors), [colors])
+}
+
 export function CodeBlock({ code, language }: Props) {
+  const styles = useThemedStyles()
   const isDark = useColorScheme() === "dark"
   const [copied, setCopied] = useState(false)
   const sel = wideTextSelection(Platform.OS)
@@ -50,15 +58,16 @@ export function CodeBlock({ code, language }: Props) {
   )
 }
 
-const styles = StyleSheet.create({
+function createStyles(colors: Theme) {
+  return StyleSheet.create({
   container: {
-    backgroundColor: "#f5f5f5",
+    backgroundColor: colors.panelAlt,
     borderRadius: 8,
     marginVertical: 8,
     overflow: "hidden",
   },
   containerDark: {
-    backgroundColor: "#1a1a1a",
+    backgroundColor: colors.panelAlt,
   },
   header: {
     flexDirection: "row",
@@ -66,27 +75,27 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingHorizontal: 12,
     paddingVertical: 6,
-    backgroundColor: "#e8e8e8",
+    backgroundColor: colors.panelAlt,
   },
   headerDark: {
-    backgroundColor: "#2a2a2a",
+    backgroundColor: colors.panel,
   },
   language: {
     fontSize: 11,
     fontWeight: "600",
-    color: "#666666",
+    color: colors.muted,
     textTransform: "uppercase",
   },
   languageDark: {
-    color: "#888888",
+    color: colors.muted,
   },
   copyBtn: {
     fontSize: 11,
-    color: "#8b5cf6",
+    color: colors.accent,
     fontWeight: "600",
   },
   copyBtnDark: {
-    color: "#a78bfa",
+    color: colors.accent,
   },
   codeBody: {
     padding: 12,
@@ -95,9 +104,10 @@ const styles = StyleSheet.create({
     fontFamily: Platform.OS === "ios" ? "Menlo" : "monospace",
     fontSize: 13,
     lineHeight: 20,
-    color: "#1a1a1a",
+    color: colors.text,
   },
   codeDark: {
-    color: "#e5e5e5",
+    color: colors.text,
   },
-})
+  })
+}

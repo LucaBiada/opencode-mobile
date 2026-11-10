@@ -270,7 +270,7 @@ export default function PhoneChatScreen() {
               disabled={!sending && input.trim().length === 0}
               testID="phone-send"
             >
-              <Ionicons name={sending ? "stop" : "arrow-up"} size={20} color="#fff" />
+              <Ionicons name={sending ? "stop" : "arrow-up"} size={20} color={colors.onAccent} />
             </TouchableOpacity>
           </View>
         </View>
@@ -315,7 +315,7 @@ function createStyles(colors: Theme) {
   approvalButton: { paddingVertical: 9, paddingHorizontal: 16, borderRadius: 11 },
   approvalGhost: { backgroundColor: colors.panelAlt },
   approvalPrimary: { backgroundColor: colors.accent },
-  approvalButtonText: { color: "#fff", fontWeight: "600", fontSize: 14 },
+  approvalButtonText: { color: colors.onAccent, fontWeight: "600", fontSize: 14 },
   composer: {
     marginHorizontal: 15,
     borderWidth: 1,

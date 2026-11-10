@@ -1,4 +1,4 @@
-﻿import { useCallback, useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import {
   View,
   Text,
@@ -209,7 +209,7 @@ export default function SettingsScreen() {
             description={t("settings.security.lockNow.description")}
             isDark={isDark}
             onPress={lock}
-            right={<Ionicons name="chevron-forward" size={20} color={isDark ? "#666666" : "#999999"} />}
+            right={<Ionicons name="chevron-forward" size={20} color={colors.muted} />}
           />
         )}
       </SettingSection>
@@ -237,7 +237,7 @@ export default function SettingsScreen() {
         })}
         {osGranted === false && (
           <View style={[styles.settingRow, isDark && styles.settingRowDark]}>
-            <Text style={[styles.settingDescription, { color: "#ef4444", paddingLeft: 48 }]}>
+            <Text style={[styles.settingDescription, { color: colors.danger, paddingLeft: 48 }]}>
               {t("settings.notifications.disabledNotice")}
             </Text>
           </View>
@@ -266,7 +266,7 @@ export default function SettingsScreen() {
           description={t("settings.privacy.privacyPolicy.description")}
           isDark={isDark}
           onPress={() => Linking.openURL(PRIVACY_POLICY_URL)}
-          right={<Ionicons name="open-outline" size={20} color={isDark ? "#666666" : "#999999"} />}
+          right={<Ionicons name="open-outline" size={20} color={colors.muted} />}
         />
       </SettingSection>
 
@@ -277,7 +277,7 @@ export default function SettingsScreen() {
           description="Use your OpenCode Go key, no computer"
           isDark={isDark}
           onPress={() => router.push("/phone")}
-          right={<Ionicons name="chevron-forward" size={20} color={isDark ? "#666666" : "#999999"} />}
+          right={<Ionicons name="chevron-forward" size={20} color={colors.muted} />}
         />
       </SettingSection>
 
@@ -288,7 +288,7 @@ export default function SettingsScreen() {
           description={localeLabels[locale]}
           isDark={isDark}
           onPress={handleLanguagePress}
-          right={<Ionicons name="chevron-forward" size={20} color={isDark ? "#666666" : "#999999"} />}
+          right={<Ionicons name="chevron-forward" size={20} color={colors.muted} />}
         />
         <SettingRow
           icon="information-circle"
@@ -305,7 +305,7 @@ export default function SettingsScreen() {
           onPress={updateAvailable ? () => Linking.openURL(updateAvailable.url) : undefined}
           right={
             updateAvailable ? (
-              <Ionicons name="arrow-up-circle" size={20} color={isDark ? "#7dd3fc" : "#0369a1"} />
+              <Ionicons name="arrow-up-circle" size={20} color={colors.accent} />
             ) : undefined
           }
         />
@@ -315,7 +315,7 @@ export default function SettingsScreen() {
           description={t("settings.about.github.description")}
           isDark={isDark}
           onPress={() => Linking.openURL("https://github.com/anomalyco/opencode")}
-          right={<Ionicons name="open-outline" size={20} color={isDark ? "#666666" : "#999999"} />}
+          right={<Ionicons name="open-outline" size={20} color={colors.muted} />}
         />
         <SettingRow
           icon="document-text"
@@ -323,7 +323,7 @@ export default function SettingsScreen() {
           description={t("settings.about.docs.description")}
           isDark={isDark}
           onPress={() => Linking.openURL("https://opencode.ai/docs")}
-          right={<Ionicons name="open-outline" size={20} color={isDark ? "#666666" : "#999999"} />}
+          right={<Ionicons name="open-outline" size={20} color={colors.muted} />}
         />
       </SettingSection>
 
@@ -339,7 +339,7 @@ function createStyles(colors: Theme) {
   return StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.panelAlt,
+    backgroundColor: colors.bg,
   },
   containerDark: {
     backgroundColor: colors.bg,

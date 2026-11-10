@@ -1,4 +1,5 @@
 import { useMemo } from "react"
+import { useTheme, type Theme } from "../../theme"
 import { View, Text, TouchableOpacity, ScrollView, StyleSheet, Keyboard, Platform } from "react-native"
 import { Ionicons } from "@expo/vector-icons"
 import { useTranslation } from "react-i18next"
@@ -18,7 +19,14 @@ interface Props {
   onSelect: (cmd: SlashCommand) => void
 }
 
+function useThemedStyles() {
+  const colors = useTheme()
+  return useMemo(() => createStyles(colors), [colors])
+}
+
 export function SlashPopover({ query, commands, isDark, onSelect }: Props) {
+  const s = useThemedStyles()
+  const colors = useTheme()
   const { t } = useTranslation()
   const filtered = useMemo(() => {
     const q = query.toLowerCase()
@@ -35,7 +43,7 @@ export function SlashPopover({ query, commands, isDark, onSelect }: Props) {
             <Ionicons
               name={cmd.icon as any}
               size={18}
-              color={cmd.type === "custom" ? "#8b5cf6" : isDark ? "#888888" : "#666666"}
+              color={cmd.type === "custom" ? colors.accent : colors.muted}
             />
             <View style={s.textCol}>
               <Text style={[s.trigger, isDark && s.textWhite]}>/{cmd.trigger}</Text>
@@ -57,14 +65,15 @@ export function SlashPopover({ query, commands, isDark, onSelect }: Props) {
   )
 }
 
-const s = StyleSheet.create({
+function createStyles(colors: Theme) {
+  return StyleSheet.create({
   popover: {
-    backgroundColor: "#ffffff",
+    backgroundColor: colors.panel,
     borderTopWidth: 1,
-    borderTopColor: "#e5e5e5",
+    borderTopColor: colors.border,
     maxHeight: 220,
   },
-  popoverDark: { backgroundColor: "#1a1a1a", borderTopColor: "#2a2a2a" },
+  popoverDark: { backgroundColor: colors.panelAlt, borderTopColor: colors.border },
   scroll: { paddingVertical: 4 },
   item: {
     flexDirection: "row",
@@ -75,16 +84,17 @@ const s = StyleSheet.create({
   },
   itemDark: {},
   textCol: { flex: 1 },
-  trigger: { fontSize: 14, fontWeight: "600", color: "#0a0a0a" },
-  textWhite: { color: "#ffffff" },
-  desc: { fontSize: 12, color: "#999999", marginTop: 1 },
-  metaDark: { color: "#666666" },
+  trigger: { fontSize: 14, fontWeight: "600", color: colors.text },
+  textWhite: { color: colors.onAccent },
+  desc: { fontSize: 12, color: colors.muted, marginTop: 1 },
+  metaDark: { color: colors.muted },
   badge: {
-    backgroundColor: "#f3e8ff",
+    backgroundColor: colors.accentSoft,
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: 4,
   },
-  badgeDark: { backgroundColor: "#2a1a3e" },
-  badgeText: { fontSize: 10, color: "#8b5cf6", fontWeight: "600" },
-})
+  badgeDark: { backgroundColor: colors.accentSoft },
+  badgeText: { fontSize: 10, color: colors.accent, fontWeight: "600" },
+  })
+}

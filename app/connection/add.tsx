@@ -1,4 +1,4 @@
-﻿import { useMemo, useState } from "react"
+import { useMemo, useState } from "react"
 import {
   View,
   Text,
@@ -232,7 +232,7 @@ export default function AddConnectionScreen() {
         keyboardShouldPersistTaps="handled"
       >
         <View style={styles.quickHeader}>
-          <Ionicons name="wifi" size={48} color={isDark ? "#ffffff" : "#0a0a0a"} />
+          <Ionicons name="wifi" size={48} color={colors.text} />
           <Text style={[styles.quickTitle, isDark && styles.textDark]}>{t("connection.add.quick.title")}</Text>
           <Text style={[styles.quickSubtitle, isDark && styles.hintDark]}>{t("connection.add.quick.subtitle")}</Text>
         </View>
@@ -243,7 +243,7 @@ export default function AddConnectionScreen() {
           <TextInput
             style={[styles.input, styles.ipInput, isDark && styles.inputDark]}
             placeholder="192.168.1.100"
-            placeholderTextColor={isDark ? "#666666" : "#999999"}
+            placeholderTextColor={colors.muted}
             value={ip}
             onChangeText={setIp}
             autoCapitalize="none"
@@ -255,7 +255,7 @@ export default function AddConnectionScreen() {
           <TextInput
             style={[styles.input, styles.portInput, isDark && styles.inputDark]}
             placeholder="4096"
-            placeholderTextColor={isDark ? "#666666" : "#999999"}
+            placeholderTextColor={colors.muted}
             value={port}
             onChangeText={setPort}
             keyboardType="number-pad"
@@ -268,7 +268,7 @@ export default function AddConnectionScreen() {
         <TextInput
           style={[styles.input, isDark && styles.inputDark]}
           placeholder={t("connection.add.quick.namePlaceholder")}
-          placeholderTextColor={isDark ? "#666666" : "#999999"}
+          placeholderTextColor={colors.muted}
           value={name}
           onChangeText={setName}
         />
@@ -278,7 +278,7 @@ export default function AddConnectionScreen() {
         <TextInput
           style={[styles.input, isDark && styles.inputDark]}
           placeholder={t("connection.add.quick.passwordPlaceholder")}
-          placeholderTextColor={isDark ? "#666666" : "#999999"}
+          placeholderTextColor={colors.muted}
           value={password}
           onChangeText={setPassword}
           secureTextEntry
@@ -302,10 +302,10 @@ export default function AddConnectionScreen() {
           testID="connect-submit-button"
         >
           {isConnecting ? (
-            <ActivityIndicator size="small" color={isDark ? "#0a0a0a" : "#ffffff"} />
+            <ActivityIndicator size="small" color={colors.onAccent} />
           ) : (
             <>
-              <Ionicons name="flash" size={20} color={isDark ? "#0a0a0a" : "#ffffff"} />
+              <Ionicons name="flash" size={20} color={colors.onAccent} />
               <Text style={[styles.connectButtonText, isDark && styles.connectButtonTextDark]}>
                 {t("connection.add.quick.connectButton")}
               </Text>
@@ -347,7 +347,7 @@ export default function AddConnectionScreen() {
           <Text style={[styles.advancedLinkText, isDark && styles.hintDark]}>
             {t("connection.add.quick.advancedLink")}
           </Text>
-          <Ionicons name="chevron-forward" size={16} color={isDark ? "#888888" : "#666666"} />
+          <Ionicons name="chevron-forward" size={16} color={colors.muted} />
         </TouchableOpacity>
       </ScrollView>
       </KeyboardAvoidingView>
@@ -367,7 +367,7 @@ export default function AddConnectionScreen() {
       keyboardShouldPersistTaps="handled"
     >
       <TouchableOpacity style={styles.backToQuick} onPress={() => setMode("quick")}>
-        <Ionicons name="chevron-back" size={16} color={isDark ? "#888888" : "#666666"} />
+        <Ionicons name="chevron-back" size={16} color={colors.muted} />
         <Text style={[styles.backToQuickText, isDark && styles.hintDark]}>{t("connection.add.advanced.backToQuick")}</Text>
       </TouchableOpacity>
 
@@ -392,7 +392,7 @@ export default function AddConnectionScreen() {
             <Ionicons
               name={opt.icon}
               size={20}
-              color={type === opt.type ? (isDark ? "#0a0a0a" : "#ffffff") : isDark ? "#888888" : "#666666"}
+              color={type === opt.type ? (colors.onAccent) : colors.muted}
             />
             <Text
               style={[
@@ -413,7 +413,7 @@ export default function AddConnectionScreen() {
       <TextInput
         style={[styles.input, isDark && styles.inputDark]}
         placeholder={t("connection.shared.namePlaceholder")}
-        placeholderTextColor={isDark ? "#666666" : "#999999"}
+        placeholderTextColor={colors.muted}
         value={name}
         onChangeText={setName}
       />
@@ -429,7 +429,7 @@ export default function AddConnectionScreen() {
               ? "https://your-tunnel.trycloudflare.com"
               : "https://api.opencode.ai"
         }
-        placeholderTextColor={isDark ? "#666666" : "#999999"}
+        placeholderTextColor={colors.muted}
         value={url}
         onChangeText={setUrl}
         autoCapitalize="none"
@@ -451,7 +451,7 @@ export default function AddConnectionScreen() {
       <TextInput
         style={[styles.input, isDark && styles.inputDark]}
         placeholder="/path/to/project"
-        placeholderTextColor={isDark ? "#666666" : "#999999"}
+        placeholderTextColor={colors.muted}
         value={directory}
         onChangeText={setDirectory}
         autoCapitalize="none"
@@ -466,7 +466,7 @@ export default function AddConnectionScreen() {
       <TextInput
         style={[styles.input, isDark && styles.inputDark]}
         placeholder="admin"
-        placeholderTextColor={isDark ? "#666666" : "#999999"}
+        placeholderTextColor={colors.muted}
         value={username}
         onChangeText={setUsername}
         autoCapitalize="none"
@@ -477,7 +477,7 @@ export default function AddConnectionScreen() {
       <TextInput
         style={[styles.input, isDark && styles.inputDark]}
         placeholder="password"
-        placeholderTextColor={isDark ? "#666666" : "#999999"}
+        placeholderTextColor={colors.muted}
         value={password}
         onChangeText={setPassword}
         secureTextEntry
@@ -490,7 +490,7 @@ export default function AddConnectionScreen() {
         disabled={isConnecting}
       >
         {isConnecting ? (
-          <ActivityIndicator size="small" color={isDark ? "#0a0a0a" : "#ffffff"} />
+          <ActivityIndicator size="small" color={colors.onAccent} />
         ) : (
           <Text style={[styles.connectButtonText, isDark && styles.connectButtonTextDark]}>
             {t("connection.add.advanced.saveButton")}
@@ -555,19 +555,19 @@ function createStyles(colors: Theme) {
     gap: 8,
     padding: 16,
     borderRadius: 12,
-    backgroundColor: colors.bg,
+    backgroundColor: colors.accent,
     marginTop: 24,
   },
   connectButtonDark: {
-    backgroundColor: colors.panel,
+    backgroundColor: colors.accent,
   },
   connectButtonText: {
     fontSize: 18,
     fontWeight: "600",
-    color: colors.text,
+    color: colors.onAccent,
   },
   connectButtonTextDark: {
-    color: colors.text,
+    color: colors.onAccent,
   },
   helpBox: {
     backgroundColor: colors.panelAlt,

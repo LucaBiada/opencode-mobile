@@ -1,4 +1,6 @@
+import { useMemo } from "react"
 import { View, Text, Image, TouchableOpacity, StyleSheet, ScrollView } from "react-native"
+import { useTheme, type Theme } from "../../theme"
 import { Ionicons } from "@expo/vector-icons"
 
 export interface Attachment {
@@ -16,7 +18,14 @@ interface Props {
   onRemove: (index: number) => void
 }
 
+function useThemedStyles() {
+  const colors = useTheme()
+  return useMemo(() => createStyles(colors), [colors])
+}
+
 export function ImageAttachments({ attachments, isDark, onRemove }: Props) {
+  const s = useThemedStyles()
+  const colors = useTheme()
   if (attachments.length === 0) return null
 
   return (
@@ -26,7 +35,7 @@ export function ImageAttachments({ attachments, isDark, onRemove }: Props) {
           <View key={`${att.uri}-${idx}`} style={s.thumb}>
             <Image source={{ uri: att.uri }} style={s.image} resizeMode="cover" />
             <TouchableOpacity style={[s.remove, isDark && s.removeDark]} onPress={() => onRemove(idx)}>
-              <Ionicons name="close" size={14} color="#ffffff" />
+              <Ionicons name="close" size={14} color={colors.onAccent} />
             </TouchableOpacity>
             {att.filename && (
               <Text style={[s.label, isDark && s.labelDark]} numberOfLines={1}>
@@ -40,22 +49,23 @@ export function ImageAttachments({ attachments, isDark, onRemove }: Props) {
   )
 }
 
-const s = StyleSheet.create({
+function createStyles(colors: Theme) {
+  return StyleSheet.create({
   container: {
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderTopWidth: 1,
-    borderTopColor: "#e5e5e5",
-    backgroundColor: "#ffffff",
+    borderTopColor: colors.border,
+    backgroundColor: colors.panel,
   },
-  containerDark: { backgroundColor: "#0a0a0a", borderTopColor: "#1a1a1a" },
+  containerDark: { backgroundColor: colors.bg, borderTopColor: colors.border },
   scroll: { gap: 8 },
   thumb: { position: "relative" },
   image: {
     width: 72,
     height: 72,
     borderRadius: 8,
-    backgroundColor: "#f0f0f0",
+    backgroundColor: colors.panelAlt,
   },
   remove: {
     position: "absolute",
@@ -64,19 +74,20 @@ const s = StyleSheet.create({
     width: 22,
     height: 22,
     borderRadius: 11,
-    backgroundColor: "#0a0a0a",
+    backgroundColor: colors.bg,
     justifyContent: "center",
     alignItems: "center",
     borderWidth: 2,
-    borderColor: "#ffffff",
+    borderColor: colors.onAccent,
   },
-  removeDark: { backgroundColor: "#ef4444", borderColor: "#0a0a0a" },
+  removeDark: { backgroundColor: colors.danger, borderColor: colors.bg },
   label: {
     fontSize: 10,
-    color: "#666666",
+    color: colors.muted,
     marginTop: 2,
     maxWidth: 72,
     textAlign: "center",
   },
-  labelDark: { color: "#888888" },
-})
+  labelDark: { color: colors.muted },
+  })
+}

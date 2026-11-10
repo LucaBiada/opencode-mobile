@@ -1,4 +1,6 @@
+import { useMemo } from "react"
 import { View, Text, StyleSheet, Platform } from "react-native"
+import { useTheme, type Theme } from "../../theme"
 import { wideTextSelection } from "../../lib/scroll-config"
 import { computeDiff } from "./diff-compute"
 
@@ -10,7 +12,14 @@ interface Props {
   isDark: boolean
 }
 
+function useThemedStyles() {
+  const colors = useTheme()
+  return useMemo(() => createStyles(colors), [colors])
+}
+
 export function DiffView({ before, after, isDark }: Props) {
+  const s = useThemedStyles()
+  const colors = useTheme()
   const lines = computeDiff(before, after)
   const sel = wideTextSelection(Platform.OS)
 
@@ -51,33 +60,34 @@ export function DiffView({ before, after, isDark }: Props) {
   )
 }
 
-const s = StyleSheet.create({
+function createStyles(colors: Theme) {
+  return StyleSheet.create({
   container: {
     borderRadius: 6,
     overflow: "hidden",
-    backgroundColor: "#f8f8f8",
+    backgroundColor: colors.panelAlt,
     marginTop: 6,
   },
-  containerDark: { backgroundColor: "#1a1a1a" },
+  containerDark: { backgroundColor: colors.panelAlt },
 
   line: {
     flexDirection: "row",
     paddingHorizontal: 8,
     paddingVertical: 1,
   },
-  add: { backgroundColor: "#dcfce7" },
-  addDark: { backgroundColor: "#052e16" },
-  remove: { backgroundColor: "#fee2e2" },
-  removeDark: { backgroundColor: "#2a0a0a" },
+  add: { backgroundColor: colors.successSoft },
+  addDark: { backgroundColor: colors.successSoft },
+  remove: { backgroundColor: colors.dangerSoft },
+  removeDark: { backgroundColor: colors.dangerSoft },
 
   prefix: {
     width: 16,
     fontSize: 12,
     fontFamily: mono,
-    color: "#999999",
+    color: colors.muted,
     lineHeight: 20,
   },
-  prefixDark: { color: "#666666" },
+  prefixDark: { color: colors.muted },
 
   text: {
     // flex:1 is what makes the fold happen inside the row instead of pushing the
@@ -85,10 +95,11 @@ const s = StyleSheet.create({
     flex: 1,
     fontSize: 12,
     fontFamily: mono,
-    color: "#0a0a0a",
+    color: colors.text,
     lineHeight: 20,
   },
-  textDark: { color: "#e5e5e5" },
-  addText: { color: "#16a34a" },
-  removeText: { color: "#dc2626" },
-})
+  textDark: { color: colors.text },
+  addText: { color: colors.success },
+  removeText: { color: colors.danger },
+  })
+}

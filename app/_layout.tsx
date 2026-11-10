@@ -19,10 +19,12 @@ import * as notifications from "../src/lib/notifications"
 import { addBreadcrumb, wrap } from "../src/lib/sentry"
 import { loadTelemetryConsent, setTelemetryConsent } from "../src/lib/telemetry"
 import { initAnalytics, trackAppOpened } from "../src/lib/analytics"
+import { useTheme } from "../src/theme"
 
 const queryClient = new QueryClient()
 
 function RootLayout() {
+  const colors = useTheme()
   const colorScheme = useColorScheme()
   const isDark = colorScheme === "dark"
   const { t } = useTranslation()
@@ -150,10 +152,10 @@ function RootLayout() {
           flex: 1,
           justifyContent: "center",
           alignItems: "center",
-          backgroundColor: isDark ? "#0a0a0a" : "#ffffff",
+          backgroundColor: colors.bg,
         }}
       >
-        <ActivityIndicator size="large" color={isDark ? "#ffffff" : "#0a0a0a"} />
+        <ActivityIndicator size="large" color={colors.text} />
       </View>
     )
   }
@@ -168,11 +170,11 @@ function RootLayout() {
             <Stack
               screenOptions={{
                 headerStyle: {
-                  backgroundColor: isDark ? "#0a0a0a" : "#ffffff",
+                  backgroundColor: colors.bg,
                 },
-                headerTintColor: isDark ? "#ffffff" : "#0a0a0a",
+                headerTintColor: colors.text,
                 contentStyle: {
-                  backgroundColor: isDark ? "#0a0a0a" : "#ffffff",
+                  backgroundColor: colors.bg,
                 },
               }}
             >

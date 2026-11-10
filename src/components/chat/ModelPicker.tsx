@@ -1,4 +1,4 @@
-﻿import { useState, useCallback, useMemo, useRef } from "react"
+import { useState, useCallback, useMemo, useRef } from "react"
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native"
 import { Ionicons } from "@expo/vector-icons"
 import BottomSheet, { BottomSheetBackdrop, BottomSheetSectionList, BottomSheetTextInput } from "@gorhom/bottom-sheet"
@@ -33,6 +33,7 @@ function useThemedStyles() {
 
 export function ModelPicker({ providers, selected, isDark, onSelect, sheetRef }: Props) {
   const s = useThemedStyles()
+  const colors = useTheme()
   const { t } = useTranslation()
   const [search, setSearch] = useState("")
 
@@ -99,7 +100,7 @@ export function ModelPicker({ providers, selected, isDark, onSelect, sheetRef }:
       keyboardBlurBehavior="restore"
       android_keyboardInputMode="adjustResize"
       backgroundStyle={isDark ? s.sheetDark : s.sheet}
-      handleIndicatorStyle={{ backgroundColor: isDark ? "#666666" : "#cccccc" }}
+      handleIndicatorStyle={{ backgroundColor: colors.muted }}
       backdropComponent={(props) => (
         <BottomSheetBackdrop {...props} disappearsOnIndex={-1} appearsOnIndex={0} opacity={0.5} />
       )}
@@ -112,7 +113,7 @@ export function ModelPicker({ providers, selected, isDark, onSelect, sheetRef }:
         <BottomSheetTextInput
           style={[s.search, isDark && s.searchDark]}
           placeholder={t("chat.modelPicker.searchPlaceholder")}
-          placeholderTextColor={isDark ? "#666666" : "#999999"}
+          placeholderTextColor={colors.muted}
           value={search}
           onChangeText={setSearch}
           autoCorrect={false}
@@ -141,7 +142,7 @@ export function ModelPicker({ providers, selected, isDark, onSelect, sheetRef }:
                 </Text>
                 <Text style={[s.rowProvider, isDark && s.metaDark]}>{item.providerName || item.providerID}</Text>
               </View>
-              {active && <Ionicons name="checkmark-circle" size={20} color="#8b5cf6" />}
+              {active && <Ionicons name="checkmark-circle" size={20} color={colors.accent} />}
             </TouchableOpacity>
           )
         }}
@@ -154,11 +155,11 @@ export function ModelPicker({ providers, selected, isDark, onSelect, sheetRef }:
 
 function createStyles(colors: Theme) {
   return StyleSheet.create({
-  sheet: { backgroundColor: "#ffffff" },
-  sheetDark: { backgroundColor: "#1a1a1a" },
+  sheet: { backgroundColor: colors.panel },
+  sheetDark: { backgroundColor: colors.panel },
   header: { paddingHorizontal: 16, paddingBottom: 12, gap: 10 },
-  title: { fontSize: 18, fontWeight: "700", color: "#0a0a0a" },
-  textWhite: { color: "#ffffff" },
+  title: { fontSize: 18, fontWeight: "700", color: colors.text },
+  textWhite: { color: colors.onAccent },
   search: {
     backgroundColor: colors.panelAlt,
     borderRadius: 10,
@@ -167,14 +168,14 @@ function createStyles(colors: Theme) {
     fontSize: 15,
     color: colors.text,
   },
-  searchDark: { backgroundColor: "#2a2a2a", color: "#ffffff" },
+  searchDark: { backgroundColor: colors.panelAlt, color: colors.onAccent },
   content: { paddingBottom: 40 },
   sectionHeader: {
     backgroundColor: colors.panelAlt,
     paddingHorizontal: 16,
     paddingVertical: 8,
   },
-  sectionHeaderDark: { backgroundColor: "#111111" },
+  sectionHeaderDark: { backgroundColor: colors.bg },
   sectionTitle: {
     fontSize: 12,
     fontWeight: "700",
@@ -182,20 +183,20 @@ function createStyles(colors: Theme) {
     textTransform: "uppercase",
     letterSpacing: 0.5,
   },
-  metaDark: { color: "#666666" },
+  metaDark: { color: colors.muted },
   row: {
     flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: "#e5e5e5",
+    borderBottomColor: colors.border,
   },
-  rowDark: { borderBottomColor: "#2a2a2a" },
-  rowSelected: { backgroundColor: "#f5f3ff" },
-  rowSelectedDark: { backgroundColor: "#1f1a2e" },
+  rowDark: { borderBottomColor: colors.border },
+  rowSelected: { backgroundColor: colors.accentSoft },
+  rowSelectedDark: { backgroundColor: colors.accentSoft },
   rowText: { flex: 1 },
-  rowName: { fontSize: 15, fontWeight: "500", color: "#0a0a0a" },
-  rowProvider: { fontSize: 12, color: "#999999", marginTop: 1 },
+  rowName: { fontSize: 15, fontWeight: "500", color: colors.text },
+  rowProvider: { fontSize: 12, color: colors.muted, marginTop: 1 },
   })
 }

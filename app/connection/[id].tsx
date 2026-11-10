@@ -1,4 +1,4 @@
-﻿import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import {
   View,
   Text,
@@ -213,7 +213,7 @@ export default function EditConnectionScreen() {
             <Ionicons
               name={opt.icon}
               size={20}
-              color={type === opt.type ? (isDark ? "#0a0a0a" : "#ffffff") : isDark ? "#888888" : "#666666"}
+              color={type === opt.type ? (colors.onAccent) : colors.muted}
             />
             <Text
               style={[
@@ -234,7 +234,7 @@ export default function EditConnectionScreen() {
       <TextInput
         style={[styles.input, isDark && styles.inputDark]}
         placeholder={t("connection.shared.namePlaceholder")}
-        placeholderTextColor={isDark ? "#666666" : "#999999"}
+        placeholderTextColor={colors.muted}
         value={name}
         onChangeText={setName}
       />
@@ -244,7 +244,7 @@ export default function EditConnectionScreen() {
       <TextInput
         style={[styles.input, isDark && styles.inputDark]}
         placeholder="http://192.168.1.100:4096"
-        placeholderTextColor={isDark ? "#666666" : "#999999"}
+        placeholderTextColor={colors.muted}
         value={url}
         onChangeText={setUrl}
         autoCapitalize="none"
@@ -257,7 +257,7 @@ export default function EditConnectionScreen() {
       <TextInput
         style={[styles.input, isDark && styles.inputDark]}
         placeholder="/path/to/project"
-        placeholderTextColor={isDark ? "#666666" : "#999999"}
+        placeholderTextColor={colors.muted}
         value={directory}
         onChangeText={setDirectory}
         autoCapitalize="none"
@@ -272,7 +272,7 @@ export default function EditConnectionScreen() {
       <TextInput
         style={[styles.input, isDark && styles.inputDark]}
         placeholder="admin"
-        placeholderTextColor={isDark ? "#666666" : "#999999"}
+        placeholderTextColor={colors.muted}
         value={username}
         onChangeText={setUsername}
         autoCapitalize="none"
@@ -283,7 +283,7 @@ export default function EditConnectionScreen() {
       <TextInput
         style={[styles.input, isDark && styles.inputDark]}
         placeholder="••••••••"
-        placeholderTextColor={isDark ? "#666666" : "#999999"}
+        placeholderTextColor={colors.muted}
         value={password}
         onChangeText={setPassword}
         secureTextEntry
@@ -297,10 +297,10 @@ export default function EditConnectionScreen() {
           disabled={isTesting}
         >
           {isTesting ? (
-            <ActivityIndicator size="small" color={isDark ? "#ffffff" : "#0a0a0a"} />
+            <ActivityIndicator size="small" color={colors.text} />
           ) : (
             <>
-              <Ionicons name="pulse" size={20} color={isDark ? "#ffffff" : "#0a0a0a"} />
+              <Ionicons name="pulse" size={20} color={colors.text} />
               <Text style={[styles.testButtonText, isDark && styles.textDark]}>{t("connection.edit.testButton")}</Text>
             </>
           )}
@@ -312,7 +312,7 @@ export default function EditConnectionScreen() {
           disabled={isSaving}
         >
           {isSaving ? (
-            <ActivityIndicator size="small" color={isDark ? "#0a0a0a" : "#ffffff"} />
+            <ActivityIndicator size="small" color={colors.onAccent} />
           ) : (
             <Text style={[styles.saveButtonText, isDark && styles.saveButtonTextDark]}>
               {t("connection.edit.saveButton")}
@@ -321,7 +321,7 @@ export default function EditConnectionScreen() {
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.deleteButton} onPress={handleDelete}>
-          <Ionicons name="trash-outline" size={20} color="#ef4444" />
+          <Ionicons name="trash-outline" size={20} color={colors.danger} />
           <Text style={styles.deleteButtonText}>{t("connection.edit.deleteButton")}</Text>
         </TouchableOpacity>
       </View>

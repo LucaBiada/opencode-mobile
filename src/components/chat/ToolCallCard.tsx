@@ -29,7 +29,7 @@ const mono = Platform.OS === "ios" ? "Menlo" : "monospace"
 function statusColor(status: string): string {
   if (status === "completed") return "#22c55e"
   if (status === "error") return "#ef4444"
-  if (status === "running") return "#f59e0b"
+  if (status === "running") return "#8B5CF6"
   return "#888888"
 }
 
@@ -37,6 +37,7 @@ function statusColor(status: string): string {
 
 function BashDetail({ input, output, isDark }: { input: unknown; output: unknown; isDark: boolean }) {
   const s = useCardStyles()
+  const colors = useTheme()
   const cmd = typeof input === "object" && input !== null ? (input as Record<string, unknown>).command : undefined
   const out = typeof output === "string" ? output : undefined
   return (
@@ -62,6 +63,7 @@ function BashDetail({ input, output, isDark }: { input: unknown; output: unknown
 
 function ReadDetail({ input, isDark }: { input: unknown; isDark: boolean }) {
   const s = useCardStyles()
+  const colors = useTheme()
   const file = typeof input === "object" && input !== null ? (input as Record<string, unknown>).filePath : undefined
   const offset = typeof input === "object" && input !== null ? (input as Record<string, unknown>).offset : undefined
   const limit = typeof input === "object" && input !== null ? (input as Record<string, unknown>).limit : undefined
@@ -80,6 +82,7 @@ function ReadDetail({ input, isDark }: { input: unknown; isDark: boolean }) {
 
 function WriteDetail({ input, isDark }: { input: unknown; isDark: boolean }) {
   const s = useCardStyles()
+  const colors = useTheme()
   const file = typeof input === "object" && input !== null ? (input as Record<string, unknown>).filePath : undefined
   const content = typeof input === "object" && input !== null ? (input as Record<string, unknown>).content : undefined
   return (
@@ -102,6 +105,7 @@ function WriteDetail({ input, isDark }: { input: unknown; isDark: boolean }) {
 
 function EditDetail({ input, output, isDark }: { input: unknown; output: unknown; isDark: boolean }) {
   const s = useCardStyles()
+  const colors = useTheme()
   const file = typeof input === "object" && input !== null ? (input as Record<string, unknown>).filePath : undefined
   const old = typeof input === "object" && input !== null ? (input as Record<string, unknown>).oldString : undefined
   const replacement =
@@ -143,6 +147,7 @@ function EditDetail({ input, output, isDark }: { input: unknown; output: unknown
 
 function PatchDetail({ input, isDark }: { input: unknown; isDark: boolean }) {
   const s = useCardStyles()
+  const colors = useTheme()
   const patch = typeof input === "object" && input !== null ? (input as Record<string, unknown>).patch : undefined
   return (
     <View style={s.detailSection}>
@@ -159,6 +164,7 @@ function PatchDetail({ input, isDark }: { input: unknown; isDark: boolean }) {
 
 function GlobGrepDetail({ input, output, isDark }: { input: unknown; output: unknown; isDark: boolean }) {
   const s = useCardStyles()
+  const colors = useTheme()
   const { t } = useTranslation()
   const pattern = typeof input === "object" && input !== null ? (input as Record<string, unknown>).pattern : undefined
   const path = typeof input === "object" && input !== null ? (input as Record<string, unknown>).path : undefined
@@ -185,11 +191,12 @@ function GlobGrepDetail({ input, output, isDark }: { input: unknown; output: unk
 
 function WebfetchDetail({ input, isDark }: { input: unknown; isDark: boolean }) {
   const s = useCardStyles()
+  const colors = useTheme()
   const url = typeof input === "object" && input !== null ? (input as Record<string, unknown>).url : undefined
   return (
     <View style={s.detailSection}>
       {typeof url === "string" && (
-        <Text style={[s.detailFile, isDark && s.detailFileDark, { color: "#8b5cf6" }]} selectable numberOfLines={3}>
+        <Text style={[s.detailFile, isDark && s.detailFileDark, { color: colors.accent }]} selectable numberOfLines={3}>
           {url}
         </Text>
       )}
@@ -199,6 +206,7 @@ function WebfetchDetail({ input, isDark }: { input: unknown; isDark: boolean }) 
 
 function TaskDetail({ input, isDark }: { input: unknown; isDark: boolean }) {
   const s = useCardStyles()
+  const colors = useTheme()
   const description =
     typeof input === "object" && input !== null ? (input as Record<string, unknown>).description : undefined
   const prompt = typeof input === "object" && input !== null ? (input as Record<string, unknown>).prompt : undefined
@@ -218,6 +226,7 @@ function TaskDetail({ input, isDark }: { input: unknown; isDark: boolean }) {
 
 function TodoDetail({ input, isDark }: { input: unknown; isDark: boolean }) {
   const s = useCardStyles()
+  const colors = useTheme()
   const todos = typeof input === "object" && input !== null ? (input as Record<string, unknown>).todos : undefined
   if (!Array.isArray(todos)) return null
   return (
@@ -230,7 +239,7 @@ function TodoDetail({ input, isDark }: { input: unknown; isDark: boolean }) {
             <Ionicons
               name={done ? "checkbox" : "square-outline"}
               size={16}
-              color={done ? "#22c55e" : isDark ? "#666666" : "#999999"}
+              color={done ? "#22c55e" : colors.muted}
             />
             <Text style={[s.todoText, isDark && s.todoTextDark, done && s.todoDone]} numberOfLines={2}>
               {String(item.content || item.title || "")}
@@ -244,6 +253,7 @@ function TodoDetail({ input, isDark }: { input: unknown; isDark: boolean }) {
 
 function GenericDetail({ input, output, isDark }: { input: unknown; output: unknown; isDark: boolean }) {
   const s = useCardStyles()
+  const colors = useTheme()
   const text =
     typeof output === "string"
       ? output
@@ -266,6 +276,7 @@ function GenericDetail({ input, output, isDark }: { input: unknown; output: unkn
 
 function ToolDetail({ tool, isDark }: { tool: Part; isDark: boolean }) {
   const s = useCardStyles()
+  const colors = useTheme()
   const name = tool.tool || ""
   const input = tool.state?.input
   const output = tool.state?.output
@@ -301,9 +312,10 @@ function ToolDetail({ tool, isDark }: { tool: Part; isDark: boolean }) {
 // --- Error display ---
 function ErrorBanner({ message, isDark }: { message: string; isDark: boolean }) {
   const s = useCardStyles()
+  const colors = useTheme()
   return (
     <View style={[s.errorBanner, isDark && s.errorBannerDark]}>
-      <Ionicons name="alert-circle" size={14} color="#ef4444" />
+      <Ionicons name="alert-circle" size={14} color={colors.danger} />
       <Text style={s.errorText} numberOfLines={3} selectable>
         {message}
       </Text>
@@ -332,6 +344,7 @@ function useCardStyles() {
 
 export function ToolCallCard({ tool, isDark }: Props) {
   const s = useCardStyles()
+  const colors = useTheme()
   const { t } = useTranslation()
   const [expanded, setExpanded] = useState(false)
   const icon = (tool.tool && TOOL_ICONS[tool.tool]) || "extension-puzzle-outline"
@@ -367,13 +380,13 @@ export function ToolCallCard({ tool, isDark }: Props) {
         </View>
         <View style={s.headerRight}>
           {status === "running" && <ActivityIndicator size="small" color={color} />}
-          {status === "completed" && <Ionicons name="checkmark-circle" size={16} color="#22c55e" />}
-          {status === "error" && <Ionicons name="close-circle" size={16} color="#ef4444" />}
+          {status === "completed" && <Ionicons name="checkmark-circle" size={16} color={colors.success} />}
+          {status === "error" && <Ionicons name="close-circle" size={16} color={colors.danger} />}
           {hasDetail && (
             <Ionicons
               name={expanded ? "chevron-up" : "chevron-down"}
               size={16}
-              color={isDark ? "#666666" : "#999999"}
+              color={colors.muted}
             />
           )}
         </View>
@@ -403,9 +416,9 @@ function createStyles(colors: Theme) {
     borderWidth: 1,
     borderColor: colors.border,
   },
-  cardDark: { backgroundColor: "#2a2a2a", borderColor: "#3a3a3a" },
-  cardError: { borderColor: "#fecaca" },
-  cardErrorDark: { borderColor: "#7f1d1d" },
+  cardDark: { backgroundColor: colors.panelAlt, borderColor: colors.border },
+  cardError: { borderColor: colors.danger },
+  cardErrorDark: { borderColor: colors.danger },
 
   header: {
     flexDirection: "row",
@@ -414,10 +427,10 @@ function createStyles(colors: Theme) {
   },
   headerLeft: { flexDirection: "row", alignItems: "center", gap: 8, flex: 1 },
   headerRight: { flexDirection: "row", alignItems: "center", gap: 6 },
-  name: { fontSize: 13, fontWeight: "500", color: "#0a0a0a", flex: 1 },
-  nameDark: { color: "#e5e5e5" },
-  elapsed: { fontSize: 11, color: "#999999" },
-  elapsedDark: { color: "#666666" },
+  name: { fontSize: 13, fontWeight: "500", color: colors.text, flex: 1 },
+  nameDark: { color: colors.text },
+  elapsed: { fontSize: 11, color: colors.muted },
+  elapsedDark: { color: colors.muted },
 
   // Error
   errorBanner: {
@@ -429,8 +442,8 @@ function createStyles(colors: Theme) {
     backgroundColor: colors.dangerSoft,
     borderRadius: 6,
   },
-  errorBannerDark: { backgroundColor: "#1a0a0a" },
-  errorText: { fontSize: 12, color: "#dc2626", flex: 1, lineHeight: 18 },
+  errorBannerDark: { backgroundColor: colors.dangerSoft },
+  errorText: { fontSize: 12, color: colors.danger, flex: 1, lineHeight: 18 },
 
   // Detail
   detailScroll: { maxHeight: 300, marginTop: 8 },
@@ -445,9 +458,9 @@ function createStyles(colors: Theme) {
     borderRadius: 4,
     overflow: "hidden",
   },
-  detailFileDark: { color: "#a78bfa", backgroundColor: "#1a1a2e" },
-  detailMeta: { fontSize: 12, color: "#666666", lineHeight: 18 },
-  detailMetaDark: { color: "#888888" },
+  detailFileDark: { color: colors.accent, backgroundColor: colors.accentSoft },
+  detailMeta: { fontSize: 12, color: colors.muted, lineHeight: 18 },
+  detailMetaDark: { color: colors.muted },
 
   // Code block
   codeBlock: {
@@ -455,15 +468,15 @@ function createStyles(colors: Theme) {
     borderRadius: 6,
     padding: 10,
   },
-  codeBlockDark: { backgroundColor: "#1a1a1a" },
+  codeBlockDark: { backgroundColor: colors.panelAlt },
   codePre: {
     fontSize: 12,
     fontFamily: mono,
     color: colors.text,
     lineHeight: 18,
   },
-  codePteDark: { color: "#e5e5e5" },
-  codePrompt: { color: "#8b5cf6", fontWeight: "700" },
+  codePteDark: { color: colors.text },
+  codePrompt: { color: colors.accent, fontWeight: "700" },
 
   // Todo
   todoRow: {
@@ -472,8 +485,8 @@ function createStyles(colors: Theme) {
     gap: 8,
     paddingVertical: 3,
   },
-  todoText: { fontSize: 13, color: "#0a0a0a", flex: 1, lineHeight: 20 },
-  todoTextDark: { color: "#e5e5e5" },
-  todoDone: { textDecorationLine: "line-through", color: "#999999" },
+  todoText: { fontSize: 13, color: colors.text, flex: 1, lineHeight: 20 },
+  todoTextDark: { color: colors.text },
+  todoDone: { textDecorationLine: "line-through", color: colors.muted },
   })
 }

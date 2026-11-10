@@ -1,4 +1,6 @@
 import { useState } from "react"
+import { useMemo } from "react"
+import { useTheme, type Theme } from "../../theme"
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native"
 import { Ionicons } from "@expo/vector-icons"
 import { useTranslation } from "react-i18next"
@@ -8,23 +10,26 @@ interface Props {
   isDark: boolean
 }
 
-export function ReasoningBlock({ text, isDark }: Props) {
+function useThemedStyles() {
+  const colors = useTheme()
+  return useMemo(() => createStyles(colors), [colors])
+}
+
+export function ReasoningBlock({ text }: Props) {
+  const s = useThemedStyles()
+  const colors = useTheme()
   const { t } = useTranslation()
   const [expanded, setExpanded] = useState(false)
 
   return (
-    <TouchableOpacity
-      style={[s.block, isDark && s.blockDark]}
-      onPress={() => setExpanded(!expanded)}
-      activeOpacity={0.7}
-    >
+    <TouchableOpacity style={s.block} onPress={() => setExpanded(!expanded)} activeOpacity={0.7}>
       <View style={s.header}>
-        <Ionicons name="bulb-outline" size={14} color="#f59e0b" />
-        <Text style={[s.label, isDark && s.labelDark]}>{t("chat.reasoningBlock.label")}</Text>
-        <Ionicons name={expanded ? "chevron-up" : "chevron-down"} size={14} color={isDark ? "#666666" : "#999999"} />
+        <Ionicons name="bulb-outline" size={14} color={colors.accent} />
+        <Text style={s.label}>{t("chat.reasoningBlock.label")}</Text>
+        <Ionicons name={expanded ? "chevron-up" : "chevron-down"} size={14} color={colors.muted} />
       </View>
       {expanded && (
-        <Text style={[s.text, isDark && s.textDark]} selectable>
+        <Text style={s.text} selectable>
           {text}
         </Text>
       )}
@@ -32,19 +37,18 @@ export function ReasoningBlock({ text, isDark }: Props) {
   )
 }
 
-const s = StyleSheet.create({
-  block: {
-    backgroundColor: "#fffbeb",
-    borderRadius: 8,
-    padding: 10,
-    marginBottom: 8,
-    borderWidth: 1,
-    borderColor: "#fef3c7",
-  },
-  blockDark: { backgroundColor: "#1a1a0a", borderColor: "#333300" },
-  header: { flexDirection: "row", alignItems: "center", gap: 6 },
-  label: { fontSize: 12, fontWeight: "600", color: "#92400e", flex: 1 },
-  labelDark: { color: "#f59e0b" },
-  text: { fontSize: 13, lineHeight: 20, color: "#78350f", marginTop: 8 },
-  textDark: { color: "#d4a574" },
-})
+function createStyles(colors: Theme) {
+  return StyleSheet.create({
+    block: {
+      backgroundColor: colors.panel,
+      borderRadius: 12,
+      padding: 12,
+      marginBottom: 8,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    header: { flexDirection: "row", alignItems: "center", gap: 6 },
+    label: { fontSize: 12, fontWeight: "600", color: colors.textDim, flex: 1 },
+    text: { fontSize: 13, lineHeight: 20, color: colors.muted, marginTop: 8 },
+  })
+}

@@ -12,6 +12,7 @@ export interface Theme {
   muted: string
   accent: string
   accentPressed: string
+  onAccent: string
   success: string
   danger: string
   codeBg: string
@@ -33,6 +34,7 @@ export const darkColors: Theme = {
   muted: "#B0B0B4",
   accent: "#8B5CF6",
   accentPressed: "#7C3AED",
+  onAccent: "#FFFFFF",
   success: "#4ADE80",
   danger: "#F87171",
   codeBg: "#18212C",
@@ -54,6 +56,7 @@ export const lightColors: Theme = {
   muted: "#6E6E75",
   accent: "#7C3AED",
   accentPressed: "#6D28D9",
+  onAccent: "#FFFFFF",
   success: "#16A34A",
   danger: "#DC2626",
   codeBg: "#EEF2F7",

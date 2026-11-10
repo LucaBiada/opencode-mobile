@@ -1,4 +1,4 @@
-﻿import { useMemo } from "react"
+import { useMemo } from "react"
 import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator } from "react-native"
 import { Ionicons } from "@expo/vector-icons"
 import { useTranslation } from "react-i18next"
@@ -59,6 +59,7 @@ export function SessionInfo({
   onClose,
 }: Props) {
   const s = useThemedStyles()
+  const colors = useTheme()
   const { t } = useTranslation()
   // Match TUI: last assistant message tokens (context window), cumulative cost
   const stats = useMemo(() => {
@@ -105,7 +106,7 @@ export function SessionInfo({
       {/* Top row: tokens + context % + cost — matches TUI header */}
       <View style={s.row}>
         <View style={s.costRow}>
-          <Ionicons name="stats-chart-outline" size={14} color={isDark ? "#888888" : "#666666"} />
+          <Ionicons name="stats-chart-outline" size={14} color={colors.muted} />
           {hasTokens && (
             <Text style={[s.tokens, isDark && s.textDark]}>
               {stats.total.toLocaleString()}
@@ -118,7 +119,7 @@ export function SessionInfo({
           )}
         </View>
         <TouchableOpacity onPress={onClose} hitSlop={8}>
-          <Ionicons name="close" size={16} color={isDark ? "#666666" : "#999999"} />
+          <Ionicons name="close" size={16} color={colors.muted} />
         </TouchableOpacity>
       </View>
 
@@ -138,19 +139,19 @@ export function SessionInfo({
       {/* Token breakdown pills */}
       {hasTokens && (
         <View style={s.breakdown}>
-          <TokenPill label={t("chat.sessionInfo.pills.in")} value={stats.input} color="#3b82f6" isDark={isDark} />
-          <TokenPill label={t("chat.sessionInfo.pills.out")} value={stats.output} color="#10b981" isDark={isDark} />
+          <TokenPill label={t("chat.sessionInfo.pills.in")} value={stats.input} color={colors.accent} isDark={isDark} />
+          <TokenPill label={t("chat.sessionInfo.pills.out")} value={stats.output} color={colors.success} isDark={isDark} />
           {stats.reasoning > 0 && (
-            <TokenPill label={t("chat.sessionInfo.pills.think")} value={stats.reasoning} color="#f59e0b" isDark={isDark} />
+            <TokenPill label={t("chat.sessionInfo.pills.think")} value={stats.reasoning} color={colors.accent} isDark={isDark} />
           )}
           {stats.cacheRead > 0 && (
-            <TokenPill label={t("chat.sessionInfo.pills.cacheRead")} value={stats.cacheRead} color="#8b5cf6" isDark={isDark} />
+            <TokenPill label={t("chat.sessionInfo.pills.cacheRead")} value={stats.cacheRead} color={colors.accent} isDark={isDark} />
           )}
           {stats.cacheWrite > 0 && (
             <TokenPill
               label={t("chat.sessionInfo.pills.cacheWrite")}
               value={stats.cacheWrite}
-              color="#ec4899"
+              color={colors.accent}
               isDark={isDark}
             />
           )}
@@ -189,9 +190,9 @@ export function SessionInfo({
         {hasMore && (
           <TouchableOpacity style={[s.action, isDark && s.actionDark]} onPress={onLoadAll} disabled={loadingAll}>
             {loadingAll ? (
-              <ActivityIndicator size="small" color={isDark ? "#888888" : "#666666"} />
+              <ActivityIndicator size="small" color={colors.muted} />
             ) : (
-              <Ionicons name="download-outline" size={14} color={isDark ? "#888888" : "#666666"} />
+              <Ionicons name="download-outline" size={14} color={colors.muted} />
             )}
             <Text style={[s.actionText, isDark && s.dimDark]}>
               {loadingAll ? t("chat.sessionInfo.loading") : t("chat.sessionInfo.loadAllMessages")}
@@ -200,7 +201,7 @@ export function SessionInfo({
         )}
         {messages.length > 0 && (
           <TouchableOpacity style={[s.action, isDark && s.actionDark]} onPress={onScrollToTop}>
-            <Ionicons name="arrow-up-outline" size={14} color={isDark ? "#888888" : "#666666"} />
+            <Ionicons name="arrow-up-outline" size={14} color={colors.muted} />
             <Text style={[s.actionText, isDark && s.dimDark]}>{t("chat.sessionInfo.jumpToBeginning")}</Text>
           </TouchableOpacity>
         )}
@@ -211,9 +212,10 @@ export function SessionInfo({
 
 function MetaItem({ icon, label, value, isDark }: { icon: string; label: string; value: string; isDark: boolean }) {
   const s = useThemedStyles()
+  const colors = useTheme()
   return (
     <View style={s.metaItem}>
-      <Ionicons name={icon as any} size={12} color={isDark ? "#555555" : "#999999"} />
+      <Ionicons name={icon as any} size={12} color={colors.muted} />
       <Text style={[s.metaLabel, isDark && s.dimDark]}>{label}</Text>
       <Text style={[s.metaValue, isDark && s.metaValueDark]}>{value}</Text>
     </View>
@@ -222,6 +224,7 @@ function MetaItem({ icon, label, value, isDark }: { icon: string; label: string;
 
 function TokenPill({ label, value, color, isDark }: { label: string; value: number; color: string; isDark: boolean }) {
   const s = useThemedStyles()
+  const colors = useTheme()
   return (
     <View style={[s.pill, { borderColor: color + "40" }, isDark && { backgroundColor: color + "15" }]}>
       <View style={[s.dot, { backgroundColor: color }]} />
@@ -242,7 +245,7 @@ function createStyles(colors: Theme) {
     gap: 8,
   },
   containerDark: {
-    borderBottomColor: "#1a1a1a",
+    borderBottomColor: colors.border,
     backgroundColor: colors.bg,
   },
   row: {
@@ -283,9 +286,9 @@ function createStyles(colors: Theme) {
     height: "100%",
     borderRadius: 2,
   },
-  barOk: { backgroundColor: "#3b82f6" },
-  barMid: { backgroundColor: "#f59e0b" },
-  barWarn: { backgroundColor: "#ef4444" },
+  barOk: { backgroundColor: colors.accent },
+  barMid: { backgroundColor: colors.accent },
+  barWarn: { backgroundColor: colors.danger },
   breakdown: {
     flexDirection: "row",
     flexWrap: "wrap",
@@ -363,6 +366,6 @@ function createStyles(colors: Theme) {
     fontWeight: "500",
   },
   textDark: { color: colors.border },
-  dimDark: { color: "#666666" },
+  dimDark: { color: colors.muted },
   })
 }

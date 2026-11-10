@@ -1,4 +1,4 @@
-﻿import { useCallback, useMemo, useState, useRef, useEffect } from "react"
+import { useCallback, useMemo, useState, useRef, useEffect } from "react"
 import {
   View,
   Text,
@@ -627,7 +627,7 @@ export default function SessionsScreen() {
         delayLongPress={500}
         testID="new-session-fab"
       >
-        <Ionicons name="add" size={28} color={"#fff"} />
+        <Ionicons name="add" size={28} color={colors.onAccent} />
       </TouchableOpacity>
 
       {/* New Session Info Modal */}
@@ -683,7 +683,7 @@ export default function SessionsScreen() {
                         <Ionicons
                           name="folder-outline"
                           size={18}
-                          color={isCurrent ? "#8b5cf6" : colors.muted}
+                          color={isCurrent ? colors.accent : colors.muted}
                         />
                         <View style={styles.projectRowContent}>
                           <Text
@@ -835,7 +835,7 @@ export default function SessionsScreen() {
                   disabled={isCreating}
                 >
                   {isCreating ? (
-                    <ActivityIndicator size="small" color={"#fff"} />
+                    <ActivityIndicator size="small" color={colors.onAccent} />
                   ) : (
                     <Text style={[styles.modalButtonTextPrimary, isDark && styles.modalButtonTextPrimaryDark]}>
                       {t("sessionsList.newSessionModal.createInButton", {
@@ -856,7 +856,7 @@ export default function SessionsScreen() {
                   disabled={isCreating}
                 >
                   {isCreating ? (
-                    <ActivityIndicator size="small" color={"#fff"} />
+                    <ActivityIndicator size="small" color={colors.onAccent} />
                   ) : (
                     <Text style={[styles.modalButtonTextPrimary, isDark && styles.modalButtonTextPrimaryDark]}>
                       {t("sessionsList.newSessionModal.createSessionButton")}
@@ -1101,11 +1101,11 @@ function createStyles(colors: Theme, isDark: boolean) {
     backgroundColor: colors.accent,
   },
   addButtonText: {
-    color: "#fff",
+    color: colors.onAccent,
     fontWeight: "600",
   },
   addButtonTextDark: {
-    color: "#fff",
+    color: colors.onAccent,
   },
   setupGuideLink: {
     marginTop: 16,
@@ -1339,10 +1339,10 @@ function createStyles(colors: Theme, isDark: boolean) {
   modalButtonTextPrimary: {
     fontSize: 15,
     fontWeight: "600",
-    color: "#fff",
+    color: colors.onAccent,
   },
   modalButtonTextPrimaryDark: {
-    color: "#fff",
+    color: colors.onAccent,
   },
   modalButtonFull: {
     flex: 0,

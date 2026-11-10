@@ -6,7 +6,8 @@
 // truly fatal cases will just re-throw and the user can share again.
 
 import React from "react"
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native"
+import { Appearance, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native"
+import { darkColors, lightColors, type Theme } from "../theme"
 import { captureException } from "../lib/sentry"
 import { buildCrashReport, shareReport } from "../lib/diagnostics"
 import { log } from "../lib/logbuffer"
@@ -56,6 +57,7 @@ export class ErrorBoundary extends React.Component<Props, State> {
     const { error, componentStack } = this.state
     if (!error) return this.props.children
 
+    const styles = createStyles(Appearance.getColorScheme() === "light" ? lightColors : darkColors)
     const message = error.message || i18n.t("errorBoundary.unknownError")
     const stack = (error.stack ?? "").split("\n").slice(0, 6).join("\n")
     const compStack = (componentStack ?? "").split("\n").slice(0, 6).join("\n")
@@ -105,19 +107,27 @@ export class ErrorBoundary extends React.Component<Props, State> {
   }
 }
 
-const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: "#0a0a0a" },
-  content: { padding: 24, paddingTop: 80 },
-  title: { color: "#ffffff", fontSize: 24, fontWeight: "700", marginBottom: 8 },
-  subtitle: { color: "#a0a0a0", fontSize: 15, lineHeight: 21, marginBottom: 24 },
-  card: { backgroundColor: "#1a1a1a", borderRadius: 12, padding: 16, marginBottom: 12 },
-  cardLabel: { color: "#888", fontSize: 12, fontWeight: "600", textTransform: "uppercase", marginBottom: 6 },
-  cardBody: { color: "#fff", fontSize: 15 },
-  code: { color: "#cdd3da", fontSize: 12, fontFamily: "Courier" },
-  actions: { marginTop: 16, flexDirection: "row", gap: 12 },
-  button: { flex: 1, paddingVertical: 14, borderRadius: 10, alignItems: "center" },
-  buttonPrimary: { backgroundColor: "#3b82f6" },
-  buttonSecondary: { backgroundColor: "#2a2a2a" },
-  buttonPrimaryText: { color: "#fff", fontSize: 16, fontWeight: "600" },
-  buttonSecondaryText: { color: "#fff", fontSize: 16, fontWeight: "600" },
-})
+function createStyles(colors: Theme) {
+  return StyleSheet.create({
+    root: { flex: 1, backgroundColor: colors.bg },
+    content: { padding: 24, paddingTop: 80 },
+    title: { color: colors.text, fontSize: 24, fontWeight: "700", marginBottom: 8 },
+    subtitle: { color: colors.muted, fontSize: 15, lineHeight: 21, marginBottom: 24 },
+    card: { backgroundColor: colors.panel, borderRadius: 18, padding: 16, marginBottom: 12 },
+    cardLabel: {
+      color: colors.muted,
+      fontSize: 12,
+      fontWeight: "600",
+      textTransform: "uppercase",
+      marginBottom: 6,
+    },
+    cardBody: { color: colors.text, fontSize: 15 },
+    code: { color: colors.codeText, fontSize: 12, fontFamily: "Courier" },
+    actions: { marginTop: 16, flexDirection: "row", gap: 12 },
+    button: { flex: 1, paddingVertical: 14, borderRadius: 11, alignItems: "center" },
+    buttonPrimary: { backgroundColor: colors.accent },
+    buttonSecondary: { backgroundColor: colors.panelAlt },
+    buttonPrimaryText: { color: colors.onAccent, fontSize: 16, fontWeight: "600" },
+    buttonSecondaryText: { color: colors.text, fontSize: 16, fontWeight: "600" },
+  })
+}

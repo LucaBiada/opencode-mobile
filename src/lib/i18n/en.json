@@ -37,7 +37,7 @@
     "privacy": {
       "crashReporting": {
         "label": "Crash Reports & Usage Analytics",
-        "description": "Share anonymous crash reports (Sentry) and usage analytics (PostHog) to help improve OpenCode. Diagnostic reports you share are also delivered to our support inbox. No code or prompts are included."
+        "description": "Share anonymous crash reports (Sentry) and usage analytics (PostHog) to help improve Devmote. Diagnostic reports you share are also delivered to our support inbox. No code or prompts are included."
       },
       "privacyPolicy": {
         "label": "Privacy Policy",
@@ -52,7 +52,7 @@
       },
       "docs": {
         "label": "Documentation",
-        "description": "Learn how to use OpenCode"
+        "description": "Learn how to use Devmote"
       }
     },
     "language": {
@@ -64,14 +64,14 @@
       "ru": "Russian"
     },
     "footer": {
-      "appName": "OpenCode Mobile",
+      "appName": "Devmote",
       "tagline": "Connect to your AI coding assistant from anywhere"
     },
     "alerts": {
       "privacyNotSavedTitle": "Privacy Setting Not Saved",
       "privacyNotSavedMessage": "Crash reporting is off for this session, but your choice could not be saved. Please try again.",
       "notificationsDisabledTitle": "Notifications Disabled",
-      "notificationsDisabledMessage": "Enable notifications for OpenCode in your device settings to receive alerts."
+      "notificationsDisabledMessage": "Enable notifications for Devmote in your device settings to receive alerts."
     }
   },
   "session": {
@@ -167,7 +167,7 @@
     },
     "add": {
       "quick": {
-        "title": "Connect to OpenCode",
+        "title": "Connect to your computer",
         "subtitle": "Enter your computer's IP address to connect",
         "ipAddressLabel": "IP Address",
         "nameOptionalLabel": "Name (optional)",
@@ -185,7 +185,7 @@
         "helpProtocolPrefix": "Use ",
         "helpProtocolMiddle": " for local and Tailscale addresses unless TLS is configured, then use ",
         "helpProtocolSuffix": ".",
-        "helpRunningPrefix": "Make sure OpenCode is running:",
+        "helpRunningPrefix": "Make sure your server is running:",
         "advancedLink": "Advanced options (tunnels, cloud, auth)"
       },
       "advanced": {
@@ -235,7 +235,7 @@
     },
     "empty": {
       "title": "No Connections",
-      "subtitle": "Add a connection to your OpenCode server"
+      "subtitle": "Add a connection to your computer"
     },
     "header": "Tap to switch, long press for options",
     "preferences": {
@@ -267,7 +267,7 @@
     },
     "empty": {
       "noConnectionTitle": "No Connection",
-      "noConnectionSubtitle": "Connect to a computer running opencode serve on your network or via Tailscale to get started.",
+      "noConnectionSubtitle": "Connect to a computer running the opencode server on your network or via Tailscale to get started.",
       "setupGuideLink": "How to set up a server",
       "addConnectionButton": "Add Connection",
       "tryDemoButton": "Try a demo (no server needed)",
@@ -327,7 +327,7 @@
     "tryAgainButton": "Try Again"
   },
   "telemetryConsent": {
-    "title": "Help improve OpenCode?",
+    "title": "Help improve Devmote?",
     "body": "Share anonymous crash reports and usage analytics to help us find and fix bugs faster. Diagnostic reports you share are also delivered to our support inbox. No code, prompts, or server addresses are ever included.",
     "bullets": {
       "deviceInfo": "Device model, OS version, app version",
@@ -344,7 +344,7 @@
     "footnote": "You can change this at any time in Settings → Privacy."
   },
   "authGate": {
-    "title": "OpenCode Locked",
+    "title": "Devmote Locked",
     "subtitle": "Authenticate to access your sessions",
     "unlockButton": "Unlock"
   },
@@ -441,7 +441,7 @@
     "title": "Demo",
     "banner": "Demo — sample conversation, no server connected",
     "ctaTitle": "Like what you see?",
-    "ctaSubtitle": "This was a scripted demo. Connect your own opencode server to do this for real.",
+    "ctaSubtitle": "This was a scripted demo. Connect your own computer to do this for real.",
     "connectButton": "Connect your own server",
     "setupGuideLink": "How to set up a server"
   },

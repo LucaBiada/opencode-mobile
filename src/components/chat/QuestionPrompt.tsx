@@ -35,6 +35,7 @@ function useThemedStyles() {
 
 export function QuestionPrompt({ request, isDark, onReply, onReject }: Props) {
   const s = useThemedStyles()
+  const colors = useTheme()
   const { t } = useTranslation()
   const [answers, setAnswers] = useState<string[][]>(request.questions.map(() => []))
   const [custom, setCustom] = useState("")
@@ -91,7 +92,7 @@ export function QuestionPrompt({ request, isDark, onReply, onReject }: Props) {
   return (
     <View style={[s.card, isDark && s.cardDark]}>
       <View style={s.header}>
-        <Ionicons name="chatbubble-ellipses-outline" size={18} color="#8b5cf6" />
+        <Ionicons name="chatbubble-ellipses-outline" size={18} color={colors.accent} />
         <Text style={[s.title, isDark && s.textWhite]}>{q.header || t("chat.questionPrompt.headerFallback")}</Text>
       </View>
       <Text style={[s.question, isDark && s.textWhite]}>{q.question}</Text>
@@ -122,19 +123,19 @@ export function QuestionPrompt({ request, isDark, onReply, onReject }: Props) {
               <TextInput
                 style={[s.customInput, isDark && s.customInputDark]}
                 placeholder={t("chat.questionPrompt.answerPlaceholder")}
-                placeholderTextColor={isDark ? "#666666" : "#999999"}
+                placeholderTextColor={colors.muted}
                 value={custom}
                 onChangeText={setCustom}
                 onSubmitEditing={submitCustom}
                 autoFocus
               />
               <TouchableOpacity onPress={submitCustom} style={s.customSubmit}>
-                <Ionicons name="send" size={18} color="#8b5cf6" />
+                <Ionicons name="send" size={18} color={colors.accent} />
               </TouchableOpacity>
             </View>
           ) : (
             <TouchableOpacity style={[s.option, isDark && s.optionDark]} onPress={() => setShowCustom(true)}>
-              <Text style={[s.optionLabel, { color: "#8b5cf6" }]}>{t("chat.questionPrompt.customAnswerLabel")}</Text>
+              <Text style={[s.optionLabel, { color: colors.accent }]}>{t("chat.questionPrompt.customAnswerLabel")}</Text>
             </TouchableOpacity>
           ))}
       </View>
@@ -174,12 +175,12 @@ function createStyles(colors: Theme) {
     borderWidth: 1,
     borderColor: colors.border,
   },
-  cardDark: { backgroundColor: "#1a1a2e", borderColor: "#2a2a3e" },
+  cardDark: { backgroundColor: colors.accentSoft, borderColor: colors.border },
   header: { flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 8 },
-  title: { fontSize: 15, fontWeight: "600", color: "#6d28d9" },
-  textWhite: { color: "#ffffff" },
-  question: { fontSize: 14, lineHeight: 20, color: "#0a0a0a", marginBottom: 12 },
-  metaDark: { color: "#666666" },
+  title: { fontSize: 15, fontWeight: "600", color: colors.accent },
+  textWhite: { color: colors.onAccent },
+  question: { fontSize: 14, lineHeight: 20, color: colors.text, marginBottom: 12 },
+  metaDark: { color: colors.muted },
 
   options: { gap: 8 },
   option: {
@@ -189,12 +190,12 @@ function createStyles(colors: Theme) {
     borderWidth: 1,
     borderColor: colors.border,
   },
-  optionDark: { backgroundColor: "#2a2a2a", borderColor: "#3a3a3a" },
-  optionSelected: { borderColor: "#8b5cf6", backgroundColor: "#f5f3ff" },
-  optionSelectedDark: { borderColor: "#8b5cf6", backgroundColor: "#2a1a3e" },
-  optionLabel: { fontSize: 14, fontWeight: "600", color: "#0a0a0a" },
-  optionLabelSelected: { color: "#6d28d9" },
-  optionDesc: { fontSize: 12, color: "#666666", marginTop: 2 },
+  optionDark: { backgroundColor: colors.panelAlt, borderColor: colors.border },
+  optionSelected: { borderColor: colors.accent, backgroundColor: colors.accentSoft },
+  optionSelectedDark: { borderColor: colors.accent, backgroundColor: colors.accentSoft },
+  optionLabel: { fontSize: 14, fontWeight: "600", color: colors.text },
+  optionLabelSelected: { color: colors.accent },
+  optionDesc: { fontSize: 12, color: colors.muted, marginTop: 2 },
 
   customRow: { flexDirection: "row", gap: 8 },
   customInput: {
@@ -208,13 +209,13 @@ function createStyles(colors: Theme) {
     borderColor: colors.border,
     color: colors.text,
   },
-  customInputDark: { backgroundColor: "#2a2a2a", borderColor: "#3a3a3a", color: "#ffffff" },
+  customInputDark: { backgroundColor: colors.panelAlt, borderColor: colors.border, color: colors.onAccent },
   customSubmit: { justifyContent: "center", alignItems: "center", padding: 8 },
 
   footer: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginTop: 12 },
-  dismiss: { fontSize: 14, color: "#999999" },
-  submitBtn: { backgroundColor: "#8b5cf6", paddingHorizontal: 20, paddingVertical: 10, borderRadius: 8 },
-  submitBtnDark: { backgroundColor: "#7c3aed" },
-  submitText: { color: "#ffffff", fontWeight: "600", fontSize: 14 },
+  dismiss: { fontSize: 14, color: colors.muted },
+  submitBtn: { backgroundColor: colors.accent, paddingHorizontal: 20, paddingVertical: 10, borderRadius: 8 },
+  submitBtnDark: { backgroundColor: colors.accent },
+  submitText: { color: colors.onAccent, fontWeight: "600", fontSize: 14 },
   })
 }

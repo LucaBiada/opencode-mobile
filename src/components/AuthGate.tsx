@@ -17,6 +17,7 @@ function useThemedStyles() {
 
 export function AuthGate({ children }: Props) {
   const styles = useThemedStyles()
+  const colors = useTheme()
   const colorScheme = useColorScheme()
   const isDark = colorScheme === "dark"
   const { t } = useTranslation()
@@ -54,14 +55,14 @@ export function AuthGate({ children }: Props) {
   return (
     <View style={[styles.container, isDark && styles.containerDark]}>
       <View style={styles.content}>
-        <Ionicons name={iconName} size={64} color={isDark ? "#ffffff" : "#0a0a0a"} />
+        <Ionicons name={iconName} size={64} color={colors.text} />
         <Text style={[styles.title, isDark && styles.textDark]}>{t("authGate.title")}</Text>
         <Text style={[styles.subtitle, isDark && styles.subtitleDark]}>{t("authGate.subtitle")}</Text>
 
         {error && <Text style={styles.error}>{error}</Text>}
 
         <TouchableOpacity style={[styles.button, isDark && styles.buttonDark]} onPress={authenticate}>
-          <Ionicons name={iconName} size={24} color={isDark ? "#0a0a0a" : "#ffffff"} />
+          <Ionicons name={iconName} size={24} color={colors.onAccent} />
           <Text style={[styles.buttonText, isDark && styles.buttonTextDark]}>{t("authGate.unlockButton")}</Text>
         </TouchableOpacity>
       </View>
@@ -110,7 +111,7 @@ function createStyles(colors: Theme) {
   button: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: colors.bg,
+    backgroundColor: colors.accent,
     paddingHorizontal: 32,
     paddingVertical: 16,
     borderRadius: 12,
@@ -118,15 +119,15 @@ function createStyles(colors: Theme) {
     gap: 12,
   },
   buttonDark: {
-    backgroundColor: colors.panel,
+    backgroundColor: colors.accent,
   },
   buttonText: {
-    color: colors.text,
+    color: colors.onAccent,
     fontSize: 18,
     fontWeight: "600",
   },
   buttonTextDark: {
-    color: colors.text,
+    color: colors.onAccent,
   },
   })
 }

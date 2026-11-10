@@ -93,6 +93,29 @@ npm.cmd test
 npx.cmd tsc --noEmit
 ```
 
+## Install on a physical phone
+
+The debug APK is not usable on its own: it loads JS from Metro, so unplugged it shows "Unable to
+load script". For a phone that should just run, build and install a **release** APK:
+
+```powershell
+cd android
+.\gradlew.bat assembleRelease
+adb install -r app\build\outputs\apk\release\app-release.apk
+```
+
+Without `RELEASE_STORE_*` env vars the release build is signed with the debug keystore and falls back
+to the debug signing config. That is fine for testing on your own phone, and **not** acceptable for a
+store upload or for sharing.
+
+On the phone: enable Developer options → USB debugging, accept the RSA prompt, then `adb devices`
+should list it. If `adb install` reports `INSTALL_FAILED_UPDATE_INCOMPATIBLE`, an older copy signed
+with a different key is installed — uninstall `dev.devmote.app` first (that erases its data).
+
+To use the app end to end, the phone must reach an opencode server: run
+`opencode serve --hostname 0.0.0.0 --port 4096` on the computer and enter the computer's LAN IP in the
+app. Cleartext HTTP is enabled for exactly this case.
+
 ## Not installed
 
 - `ios` / Xcode: not possible on Windows.

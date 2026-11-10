@@ -133,12 +133,12 @@ interface Props {
 
 const phoneTheme = {
   ...darkTheme,
-  text: { color: "#f2f2f3", fontSize: 17, lineHeight: 30 },
-  paragraph: { marginTop: 0, marginBottom: 16 },
+  text: { color: "#f2f2f3", fontSize: 17, lineHeight: 27 },
+  paragraph: { marginTop: 0, marginBottom: 13 },
   h1: { ...darkTheme.h1, color: "#ffffff", fontSize: 26, marginTop: 20, marginBottom: 12 },
   h2: { ...darkTheme.h2, color: "#ffffff", fontSize: 22, marginTop: 18, marginBottom: 10 },
   h3: { ...darkTheme.h3, color: "#ffffff", fontSize: 19, marginTop: 16, marginBottom: 8 },
-  link: { color: "#e2836a", textDecorationLine: "underline" as const },
+  link: { color: "#a78bfa", textDecorationLine: "underline" as const },
   blockquote: {
     ...darkTheme.blockquote,
     borderLeftColor: "#2e2e33",

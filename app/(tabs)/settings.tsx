@@ -11,6 +11,7 @@ import {
   Alert,
 } from "react-native"
 import { Ionicons } from "@expo/vector-icons"
+import { router } from "expo-router"
 import { useTranslation } from "react-i18next"
 import { useAuth } from "../../src/stores/auth"
 import { useSettings } from "../../src/stores/settings"
@@ -255,6 +256,17 @@ export default function SettingsScreen() {
           isDark={isDark}
           onPress={() => Linking.openURL(PRIVACY_POLICY_URL)}
           right={<Ionicons name="open-outline" size={20} color={isDark ? "#666666" : "#999999"} />}
+        />
+      </SettingSection>
+
+      <SettingSection title="Phone mode" isDark={isDark}>
+        <SettingRow
+          icon="phone-portrait-outline"
+          label="On-device chat"
+          description="Use your OpenCode Go key, no computer"
+          isDark={isDark}
+          onPress={() => router.push("/phone")}
+          right={<Ionicons name="chevron-forward" size={20} color={isDark ? "#666666" : "#999999"} />}
         />
       </SettingSection>
 

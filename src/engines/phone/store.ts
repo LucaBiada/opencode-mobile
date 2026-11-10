@@ -1,0 +1,214 @@
+import * as SQLite from "expo-sqlite"
+
+import type { Message, MessageWithParts, Part, Session } from "../../lib/sdk"
+
+// Phone-mode sessions live on the device. They are kept in their own tables so
+// nothing from remote mode (which caches server state) can collide with them.
+const DB_NAME = "devmote.db"
+
+let database: Promise<SQLite.SQLiteDatabase> | null = null
+
+function open(): Promise<SQLite.SQLiteDatabase> {
+  if (!database) database = init()
+  return database
+}
+
+async function init(): Promise<SQLite.SQLiteDatabase> {
+  const db = await SQLite.openDatabaseAsync(DB_NAME)
+  await db.execAsync(`
+    PRAGMA journal_mode = WAL;
+    CREATE TABLE IF NOT EXISTS phone_sessions (
+      id TEXT PRIMARY KEY NOT NULL,
+      title TEXT NOT NULL,
+      model TEXT NOT NULL,
+      created_at INTEGER NOT NULL,
+      updated_at INTEGER NOT NULL
+    );
+    CREATE TABLE IF NOT EXISTS phone_messages (
+      id TEXT PRIMARY KEY NOT NULL,
+      session_id TEXT NOT NULL,
+      role TEXT NOT NULL,
+      model TEXT,
+      created_at INTEGER NOT NULL,
+      completed_at INTEGER,
+      error TEXT,
+      tokens TEXT
+    );
+    CREATE INDEX IF NOT EXISTS phone_messages_session ON phone_messages(session_id, created_at);
+    CREATE TABLE IF NOT EXISTS phone_parts (
+      id TEXT PRIMARY KEY NOT NULL,
+      message_id TEXT NOT NULL,
+      seq INTEGER NOT NULL,
+      type TEXT NOT NULL,
+      data TEXT NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS phone_parts_message ON phone_parts(message_id, seq);
+  `)
+  return db
+}
+
+interface SessionRow {
+  id: string
+  title: string
+  model: string
+  created_at: number
+  updated_at: number
+}
+
+interface MessageRow {
+  id: string
+  session_id: string
+  role: "user" | "assistant"
+  model: string | null
+  created_at: number
+  completed_at: number | null
+  error: string | null
+  tokens: string | null
+}
+
+interface PartRow {
+  id: string
+  message_id: string
+  seq: number
+  type: string
+  data: string
+}
+
+function toSession(row: SessionRow): Session {
+  return {
+    id: row.id,
+    slug: row.id,
+    projectID: "phone",
+    directory: "",
+    title: row.title,
+    // Phone sessions reuse `version` to carry the model id: the field is
+    // otherwise meaningless for an on-device chat, and this keeps the shared
+    // Session shape unchanged.
+    version: row.model,
+    time: { created: row.created_at, updated: row.updated_at },
+  }
+}
+
+function toMessage(row: MessageRow): Message {
+  const message: Message = {
+    id: row.id,
+    sessionID: row.session_id,
+    role: row.role,
+    time: { created: row.created_at },
+    modelID: row.model ?? undefined,
+  }
+  if (row.completed_at) message.time.completed = row.completed_at
+  if (row.error) message.error = { message: row.error }
+  if (row.tokens) {
+    try {
+      message.tokens = JSON.parse(row.tokens)
+    } catch {
+      // ignore a malformed usage blob
+    }
+  }
+  return message
+}
+
+function toPart(row: PartRow): Part {
+  const data = JSON.parse(row.data) as Partial<Part>
+  return { ...data, id: row.id, messageID: row.message_id, type: row.type as Part["type"] } as Part
+}
+
+export async function listPhoneSessions(): Promise<Session[]> {
+  const db = await open()
+  const rows = await db.getAllAsync<SessionRow>("SELECT * FROM phone_sessions ORDER BY updated_at DESC")
+  return rows.map(toSession)
+}
+
+export async function getPhoneSession(sessionID: string): Promise<Session | null> {
+  const db = await open()
+  const row = await db.getFirstAsync<SessionRow>("SELECT * FROM phone_sessions WHERE id = ?", sessionID)
+  return row ? toSession(row) : null
+}
+
+export async function insertPhoneSession(session: Session, modelID: string): Promise<void> {
+  const db = await open()
+  await db.runAsync(
+    "INSERT INTO phone_sessions (id, title, model, created_at, updated_at) VALUES (?, ?, ?, ?, ?)",
+    session.id,
+    session.title,
+    modelID,
+    session.time.created,
+    session.time.updated,
+  )
+}
+
+export async function touchPhoneSession(sessionID: string, patch: { title?: string; updated?: number } = {}): Promise<void> {
+  const db = await open()
+  if (patch.title !== undefined) {
+    await db.runAsync("UPDATE phone_sessions SET title = ?, updated_at = ? WHERE id = ?", patch.title, patch.updated ?? Date.now(), sessionID)
+    return
+  }
+  await db.runAsync("UPDATE phone_sessions SET updated_at = ? WHERE id = ?", patch.updated ?? Date.now(), sessionID)
+}
+
+export async function deletePhoneSession(sessionID: string): Promise<void> {
+  const db = await open()
+  await db.withTransactionAsync(async () => {
+    await db.runAsync("DELETE FROM phone_parts WHERE message_id IN (SELECT id FROM phone_messages WHERE session_id = ?)", sessionID)
+    await db.runAsync("DELETE FROM phone_messages WHERE session_id = ?", sessionID)
+    await db.runAsync("DELETE FROM phone_sessions WHERE id = ?", sessionID)
+  })
+}
+
+export async function listPhoneMessages(sessionID: string): Promise<MessageWithParts[]> {
+  const db = await open()
+  const messages = await db.getAllAsync<MessageRow>(
+    "SELECT * FROM phone_messages WHERE session_id = ? ORDER BY created_at ASC",
+    sessionID,
+  )
+  if (messages.length === 0) return []
+  const parts = await db.getAllAsync<PartRow>(
+    "SELECT p.* FROM phone_parts p JOIN phone_messages m ON m.id = p.message_id WHERE m.session_id = ? ORDER BY p.message_id, p.seq",
+    sessionID,
+  )
+  const byMessage = new Map<string, Part[]>()
+  for (const row of parts) {
+    byMessage.set(row.message_id, [...(byMessage.get(row.message_id) ?? []), toPart(row)])
+  }
+  return messages.map((row) => ({ info: toMessage(row), parts: byMessage.get(row.id) ?? [] }))
+}
+
+export async function insertPhoneMessage(message: Message): Promise<void> {
+  const db = await open()
+  await db.runAsync(
+    "INSERT INTO phone_messages (id, session_id, role, model, created_at) VALUES (?, ?, ?, ?, ?)",
+    message.id,
+    message.sessionID,
+    message.role,
+    message.modelID ?? message.model?.modelID ?? null,
+    message.time.created,
+  )
+}
+
+export async function completePhoneMessage(
+  messageID: string,
+  patch: { completed?: number; error?: string; tokens?: Message["tokens"] } = {},
+): Promise<void> {
+  const db = await open()
+  await db.runAsync(
+    "UPDATE phone_messages SET completed_at = ?, error = ?, tokens = ? WHERE id = ?",
+    patch.completed ?? null,
+    patch.error ?? null,
+    patch.tokens ? JSON.stringify(patch.tokens) : null,
+    messageID,
+  )
+}
+
+export async function upsertPhonePart(part: Part, seq = 0): Promise<void> {
+  const db = await open()
+  const { id, messageID, type, ...rest } = part
+  await db.runAsync(
+    "INSERT OR REPLACE INTO phone_parts (id, message_id, seq, type, data) VALUES (?, ?, ?, ?, ?)",
+    id,
+    messageID,
+    seq,
+    type,
+    JSON.stringify(rest),
+  )
+}

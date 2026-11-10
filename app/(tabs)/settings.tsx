@@ -26,6 +26,7 @@ import { hasTelemetryConsent, setTelemetryConsent } from "../../src/lib/telemetr
 import { PRIVACY_POLICY_URL } from "../../src/lib/links"
 import { CURRENT_VERSION, checkForUpdate, type AvailableUpdate } from "../../src/lib/update-check"
 import type { LocalePreference } from "../../src/lib/i18n/locale-resolve"
+import type { ThemeMode } from "../../src/stores/settings"
 import { useTheme, type Theme } from "../../src/theme"
 
 function SettingRow({
@@ -84,7 +85,7 @@ export default function SettingsScreen() {
   const { t } = useTranslation()
 
   const { settings, hasBiometrics, updateSettings, lock } = useAuth()
-  const { notifications, setNotification, locale, setLocale } = useSettings()
+  const { notifications, setNotification, locale, setLocale, theme, setTheme } = useSettings()
   const [osGranted, setOsGranted] = useState<boolean | null>(null)
   const [telemetryUpdating, setTelemetryUpdating] = useState(false)
 
@@ -164,6 +165,21 @@ export default function SettingsScreen() {
       { text: t("common.cancel"), style: "cancel" },
     ])
   }, [t, setLocale, localeLabels])
+
+  const themeLabels: Record<ThemeMode, string> = {
+    system: t("settings.appearance.system"),
+    dark: t("settings.appearance.dark"),
+    light: t("settings.appearance.light"),
+  }
+
+  const handleThemePress = useCallback(() => {
+    Alert.alert(t("settings.appearance.title"), undefined, [
+      { text: themeLabels.system, onPress: () => setTheme("system") },
+      { text: themeLabels.dark, onPress: () => setTheme("dark") },
+      { text: themeLabels.light, onPress: () => setTheme("light") },
+      { text: t("common.cancel"), style: "cancel" },
+    ])
+  }, [t, setTheme, themeLabels])
 
   return (
     <ScrollView style={[styles.container, isDark && styles.containerDark]} contentContainerStyle={styles.content}>
@@ -282,6 +298,14 @@ export default function SettingsScreen() {
       </SettingSection>
 
       <SettingSection title={t("settings.sections.about")} isDark={isDark}>
+        <SettingRow
+          icon="contrast-outline"
+          label={t("settings.appearance.label")}
+          description={themeLabels[theme]}
+          isDark={isDark}
+          onPress={handleThemePress}
+          right={<Ionicons name="chevron-forward" size={20} color={colors.muted} />}
+        />
         <SettingRow
           icon="language"
           label={t("settings.language.label")}

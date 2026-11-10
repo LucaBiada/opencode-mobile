@@ -63,6 +63,13 @@
       "zhHans": "Simplified Chinese",
       "ru": "Russian"
     },
+    "appearance": {
+      "label": "Theme",
+      "title": "Choose Theme",
+      "system": "System",
+      "dark": "Dark",
+      "light": "Light"
+    },
     "footer": {
       "appName": "Devmote",
       "tagline": "Connect to your AI coding assistant from anywhere"

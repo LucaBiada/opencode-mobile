@@ -1,4 +1,5 @@
 import { useColorScheme } from "react-native"
+import { useSettings } from "../stores/settings"
 
 // One palette for the whole app. Dark values are measured from the reference
 // screenshots; light values are the same roles on a paper background.
@@ -68,6 +69,15 @@ export const lightColors: Theme = {
   dangerSoft: "#FEF2F2",
 }
 
+export function useIsDark(): boolean {
+  // An explicit choice in Settings wins over the device scheme; "system"
+  // follows it. This also lets the light palette be checked without changing
+  // the phone's own night mode.
+  const mode = useSettings((state) => state.theme)
+  const scheme = useColorScheme()
+  return mode === "system" ? scheme !== "light" : mode === "dark"
+}
+
 export function useTheme(): Theme {
-  return useColorScheme() === "light" ? lightColors : darkColors
+  return useIsDark() ? darkColors : lightColors
 }

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react"
 import { Stack, router } from "expo-router"
 import { StatusBar } from "expo-status-bar"
-import { useColorScheme, View, ActivityIndicator, AppState } from "react-native"
+import { View, ActivityIndicator, AppState, Appearance } from "react-native"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { GestureHandlerRootView } from "react-native-gesture-handler"
 import { BottomSheetModalProvider } from "@gorhom/bottom-sheet"
@@ -19,15 +19,22 @@ import * as notifications from "../src/lib/notifications"
 import { addBreadcrumb, wrap } from "../src/lib/sentry"
 import { loadTelemetryConsent, setTelemetryConsent } from "../src/lib/telemetry"
 import { initAnalytics, trackAppOpened } from "../src/lib/analytics"
-import { useTheme } from "../src/theme"
+import { useTheme, useIsDark } from "../src/theme"
 
 const queryClient = new QueryClient()
 
 function RootLayout() {
   const colors = useTheme()
-  const colorScheme = useColorScheme()
-  const isDark = colorScheme === "dark"
+  const isDark = useIsDark()
   const { t } = useTranslation()
+  const themeMode = useSettings((state) => state.theme)
+
+  // App-scoped override only (Android's AppCompat night mode for this process),
+  // never the device setting: everything else in the app still reads
+  // useColorScheme(), and native surfaces like the status bar follow too.
+  useEffect(() => {
+    Appearance.setColorScheme(themeMode === "system" ? null : themeMode)
+  }, [themeMode])
 
   const { initialize: initAuth, isLoading: authLoading } = useAuth()
   const { loadConnections, isLoading: connectionsLoading, client } = useConnections()
@@ -163,7 +170,10 @@ function RootLayout() {
   return (
     <ErrorBoundary>
       <I18nextProvider i18n={i18n}>
-      <GestureHandlerRootView style={{ flex: 1 }}>
+      {/* Remount on a theme change: React Native's Android text layer can keep
+          stale glyph layouts when colours flip underneath a mounted list, which
+          showed up as rows drawing their icons but no text until a restart. */}
+      <GestureHandlerRootView key={isDark ? "dark" : "light"} style={{ flex: 1 }}>
         <BottomSheetModalProvider>
           <QueryClientProvider client={queryClient}>
             <AuthGate>

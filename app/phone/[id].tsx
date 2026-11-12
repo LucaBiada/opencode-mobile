@@ -194,6 +194,13 @@ export default function PhoneChatScreen() {
                   <View style={styles.stopRing} />
                 </TouchableOpacity>
               ) : null}
+              <TouchableOpacity
+                onPress={() => router.push({ pathname: "/files", params: { session: id } })}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                testID="chat-files"
+              >
+                <Ionicons name="folder-open-outline" size={20} color={colors.muted} />
+              </TouchableOpacity>
               <TouchableOpacity onPress={openMenu} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
                 <Ionicons name="ellipsis-vertical" size={20} color={colors.muted} />
               </TouchableOpacity>
@@ -210,7 +217,13 @@ export default function PhoneChatScreen() {
           </View>
         ) : (
           messages.map((message) => (
-            <MessageBubble key={message.id} message={message} parts={parts[message.id] ?? []} onEdit={undefined} />
+            <MessageBubble
+              key={message.id}
+              message={message}
+              parts={parts[message.id] ?? []}
+              onEdit={undefined}
+              onOpenFile={(path) => router.push({ pathname: "/preview", params: { session: id, path } })}
+            />
           ))
         )}
         {sending && messages.length > 0 ? (

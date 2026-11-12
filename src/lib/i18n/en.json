@@ -9,6 +9,13 @@
     "close": "Close",
     "shareReport": "Share report"
   },
+  "files": {
+    "title": "Files",
+    "previewTitle": "Preview",
+    "empty": "No files yet. Ask the agent to create one and it will appear here.",
+    "unsupported": "This file type cannot be previewed in the app. Share it to open it elsewhere.",
+    "share": "Share"
+  },
   "home": {
     "heading": "Where do you work?",
     "subheading": "Pick a mode. Chats and connections stay scoped to it; settings apply everywhere.",

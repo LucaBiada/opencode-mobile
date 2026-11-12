@@ -335,6 +335,8 @@ function duration(start?: number, end?: number): string | null {
 interface Props {
   tool: Part
   isDark: boolean
+  // Phone mode only: the workspace file is real and can be previewed/shared.
+  onOpenFile?: (path: string) => void
 }
 
 function useCardStyles() {
@@ -342,7 +344,7 @@ function useCardStyles() {
   return useMemo(() => createStyles(colors), [colors])
 }
 
-export function ToolCallCard({ tool, isDark }: Props) {
+export function ToolCallCard({ tool, isDark, onOpenFile }: Props) {
   const s = useCardStyles()
   const colors = useTheme()
   const { t } = useTranslation()
@@ -353,6 +355,8 @@ export function ToolCallCard({ tool, isDark }: Props) {
   const error = tool.state?.error?.message
   const elapsed = duration(tool.state?.time?.start, tool.state?.time?.end)
   const hasDetail = tool.state?.input !== undefined || tool.state?.output !== undefined || error
+  const input = (tool.state?.input ?? {}) as Record<string, unknown>
+  const filePath = typeof input.filePath === "string" ? input.filePath : null
 
   const toggle = useCallback(() => {
     if (hasDetail) setExpanded((v) => !v)
@@ -398,6 +402,22 @@ export function ToolCallCard({ tool, isDark }: Props) {
       {/* Expanded detail */}
       {expanded && (
         <ScrollView style={s.detailScroll} nestedScrollEnabled showsVerticalScrollIndicator={false}>
+          {onOpenFile && filePath ? (
+            <TouchableOpacity
+              style={s.openFile}
+              onPress={(event) => {
+                event.stopPropagation()
+                onOpenFile(filePath)
+              }}
+              testID={`open-file-${filePath}`}
+            >
+              <Ionicons name="folder-open-outline" size={14} color={colors.accent} />
+              <Text style={s.openFileText} numberOfLines={1}>
+                {filePath}
+              </Text>
+              <Ionicons name="chevron-forward" size={14} color={colors.accent} />
+            </TouchableOpacity>
+          ) : null}
           {error && <ErrorBanner message={error} isDark={isDark} />}
           <ToolDetail tool={tool} isDark={isDark} />
         </ScrollView>
@@ -408,6 +428,17 @@ export function ToolCallCard({ tool, isDark }: Props) {
 
 function createStyles(colors: Theme) {
   return StyleSheet.create({
+  openFile: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    backgroundColor: colors.accentSoft,
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    marginBottom: 8,
+  },
+  openFileText: { flex: 1, color: colors.accent, fontSize: 12, fontWeight: "600" },
   card: {
     backgroundColor: colors.panel,
     padding: 10,

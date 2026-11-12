@@ -27,10 +27,11 @@ interface Props {
   isDark?: boolean
   onSelectText?: (messageID: string) => void
   onEdit?: (messageID: string) => void
+  onOpenFile?: (path: string) => void
 }
 
 export const MessageBubble = memo(
-  function MessageBubble({ message, parts, onSelectText, onEdit }: Props) {
+  function MessageBubble({ message, parts, onSelectText, onEdit, onOpenFile }: Props) {
     const colors = useTheme()
     const styles = useMemo(() => createStyles(colors), [colors])
     const scheme = useColorScheme()
@@ -75,7 +76,7 @@ export const MessageBubble = memo(
         ) : null}
 
         {tools.map((tool) => (
-          <ToolCallCard key={tool.id} tool={tool} isDark={isDark} />
+          <ToolCallCard key={tool.id} tool={tool} isDark={isDark} onOpenFile={onOpenFile} />
         ))}
 
         {message.error?.message ? (

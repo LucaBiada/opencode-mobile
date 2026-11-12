@@ -45,6 +45,13 @@ export default function PhoneChatScreen() {
   const [approval, setApproval] = useState<{ id: string; tool: string; preview?: string } | null>(null)
   const scroll = useRef<ScrollView>(null)
 
+  // Stable identity: MessageBubble is memoised and compares this prop, so an
+  // inline arrow would either be ignored or defeat the memo.
+  const openFile = useCallback(
+    (path: string) => router.push({ pathname: "/preview", params: { session: id, path } }),
+    [id],
+  )
+
   const upsertMessage = useCallback((message: Message) => {
     setMessages((current) => {
       const index = current.findIndex((item) => item.id === message.id)
@@ -222,7 +229,7 @@ export default function PhoneChatScreen() {
               message={message}
               parts={parts[message.id] ?? []}
               onEdit={undefined}
-              onOpenFile={(path) => router.push({ pathname: "/preview", params: { session: id, path } })}
+              onOpenFile={openFile}
             />
           ))
         )}

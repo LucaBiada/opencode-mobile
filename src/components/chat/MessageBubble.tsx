@@ -135,6 +135,7 @@ export const MessageBubble = memo(
     if (prev.message !== next.message) return false
     if (prev.onSelectText !== next.onSelectText) return false
     if (prev.onEdit !== next.onEdit) return false
+    if (prev.onOpenFile !== next.onOpenFile) return false
     if (prev.parts.length !== next.parts.length) return false
     for (let i = 0; i < prev.parts.length; i++) {
       if (prev.parts[i] !== next.parts[i]) return false

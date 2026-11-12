@@ -292,7 +292,7 @@ export default function SettingsScreen() {
           label={t("settings.phoneMode.label")}
           description={t("settings.phoneMode.description")}
           isDark={isDark}
-          onPress={() => router.push("/phone")}
+          onPress={() => router.push("/provider")}
           right={<Ionicons name="chevron-forward" size={20} color={colors.muted} />}
         />
       </SettingSection>

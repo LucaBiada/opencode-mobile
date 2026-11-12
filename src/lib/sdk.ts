@@ -67,6 +67,8 @@ export interface Session {
   slug: string
   projectID: string
   directory: string
+  // Phone-mode sessions only: which provider produced them. Servers never set it.
+  providerID?: string
   parentID?: string
   title: string
   version: string

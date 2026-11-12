@@ -9,6 +9,31 @@
     "close": "Close",
     "shareReport": "Share report"
   },
+  "home": {
+    "heading": "Where do you work?",
+    "subheading": "Pick a mode. Chats and connections stay scoped to it; settings apply everywhere.",
+    "configure": "Configure",
+    "remote": {
+      "title": "Remote",
+      "subtitle": "Drive the agent on your computer"
+    },
+    "cloud": {
+      "title": "Cloud",
+      "subtitle": "Hosted models, no computer"
+    },
+    "local": {
+      "title": "Local network",
+      "subtitle": "A model server on your own LAN"
+    },
+    "status": {
+      "connected": "Connected to {{name}}",
+      "noComputer": "No computer connected",
+      "goReady": "OpenCode Go key saved",
+      "keyMissing": "Add your API key",
+      "providerReady": "{{provider}} configured",
+      "notConfigured": "Not configured"
+    }
+  },
   "settings": {
     "sections": {
       "security": "Security",
@@ -232,7 +257,8 @@
     }
   },
   "nav": {
-    "sessionsTab": "Sessions",
+    "providerTab": "Provider",
+      "sessionsTab": "Sessions",
     "connectionsTab": "Connections",
     "settingsTab": "Settings",
     "addConnectionTitle": "Add Connection",

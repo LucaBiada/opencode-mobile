@@ -9,6 +9,31 @@
     "close": "关闭",
     "shareReport": "分享报告"
   },
+  "home": {
+    "heading": "在哪里工作？",
+    "subheading": "选择一种模式。聊天和连接只属于该模式，设置则全局生效。",
+    "configure": "配置",
+    "remote": {
+      "title": "远程",
+      "subtitle": "在电脑上驱动智能体"
+    },
+    "cloud": {
+      "title": "云端",
+      "subtitle": "托管模型，无需电脑"
+    },
+    "local": {
+      "title": "局域网",
+      "subtitle": "使用局域网内的模型服务器"
+    },
+    "status": {
+      "connected": "已连接到 {{name}}",
+      "noComputer": "未连接电脑",
+      "goReady": "已保存 OpenCode Go 密钥",
+      "keyMissing": "添加 API 密钥",
+      "providerReady": "{{provider}} 已配置",
+      "notConfigured": "未配置"
+    }
+  },
   "settings": {
     "sections": {
       "security": "安全",
@@ -232,7 +257,8 @@
     }
   },
   "nav": {
-    "sessionsTab": "会话",
+    "providerTab": "提供方",
+      "sessionsTab": "会话",
     "connectionsTab": "连接",
     "settingsTab": "设置",
     "addConnectionTitle": "添加连接",

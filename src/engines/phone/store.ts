@@ -76,6 +76,7 @@ interface SessionRow {
   id: string
   title: string
   model: string
+  provider_id: string
   created_at: number
   updated_at: number
 }
@@ -105,6 +106,7 @@ function toSession(row: SessionRow): Session {
     slug: row.id,
     projectID: "phone",
     directory: "",
+    providerID: row.provider_id,
     title: row.title,
     // Phone sessions reuse `version` to carry the model id: the field is
     // otherwise meaningless for an on-device chat, and this keeps the shared

@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import {
   ActivityIndicator,
   Alert,
@@ -28,6 +28,7 @@ import {
 import { listProviders, seedProviders, upsertProvider } from "../../src/engines/phone/store"
 import { phoneEngine } from "../../src/engines/phone/engine"
 import { useTheme, type Theme } from "../../src/theme"
+import { useMode } from "../../src/stores/mode"
 
 const LAST_PROVIDER_KEY = "devmote_last_provider"
 
@@ -36,6 +37,7 @@ export default function PhoneModeScreen() {
   const colors = useTheme()
   const styles = useMemo(() => createStyles(colors), [colors])
   const { t } = useTranslation()
+  const mode = useMode((state) => state.mode)
 
   const [providers, setProviders] = useState<Provider[]>([])
   const [providerID, setProviderID] = useState(DEFAULT_PROVIDER_ID)
@@ -44,7 +46,6 @@ export default function PhoneModeScreen() {
   const [hasKey, setHasKey] = useState(false)
   const [models, setModels] = useState<GoModel[]>([])
   const [modelID, setModelID] = useState("")
-  const [sessions, setSessions] = useState<Session[]>([])
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -71,17 +72,26 @@ export default function PhoneModeScreen() {
     await seedProviders(PRESETS)
     const list = await listProviders()
     setProviders(list)
-    const saved = (await AsyncStorage.getItem(LAST_PROVIDER_KEY)) ?? DEFAULT_PROVIDER_ID
-    const current = list.find((provider) => provider.id === saved) ?? list[0]
+    const saved = await AsyncStorage.getItem(LAST_PROVIDER_KEY)
+    // Cloud opens on the hosted provider; Local opens on whichever LAN
+    // provider was used last, never on OpenCode Go.
+    const preferred =
+      mode === "cloud" ? DEFAULT_PROVIDER_ID : saved && saved !== DEFAULT_PROVIDER_ID ? saved : "ollama"
+    const current = list.find((provider) => provider.id === preferred) ?? list[0]
     if (current) await selectProvider(current)
-    setSessions(await phoneEngine.listSessions())
-  }, [selectProvider])
+  }, [mode, selectProvider])
 
   useFocusEffect(
     useCallback(() => {
       void refresh()
     }, [refresh]),
   )
+
+  // Remembering the model lets the sessions FAB start a chat in one tap instead
+  // of bouncing through this screen every time.
+  useEffect(() => {
+    if (modelID) void AsyncStorage.setItem(`devmote_last_model_${providerID}`, modelID)
+  }, [modelID, providerID])
 
   const saveProvider = async () => {
     const current = providers.find((provider) => provider.id === providerID)
@@ -115,8 +125,8 @@ export default function PhoneModeScreen() {
     if (!modelID) return
     setBusy(true)
     try {
+      await AsyncStorage.setItem(`devmote_last_model_${providerID}`, modelID)
       const session = await phoneEngine.createSession({ title: "New chat", providerID, modelID })
-      setSessions(await phoneEngine.listSessions())
       router.push({ pathname: "/phone/[id]", params: { id: session.id } })
     } catch (err) {
       Alert.alert("Could not start chat", err instanceof Error ? err.message : String(err))
@@ -125,25 +135,11 @@ export default function PhoneModeScreen() {
     }
   }
 
-  const remove = (session: Session) => {
-    Alert.alert("Delete chat?", session.title, [
-      { text: t("common.cancel"), style: "cancel" },
-      {
-        text: t("common.delete", { defaultValue: "Delete" }),
-        style: "destructive",
-        onPress: async () => {
-          await phoneEngine.deleteSession(session.id)
-          setSessions(await phoneEngine.listSessions())
-        },
-      },
-    ])
-  }
 
   const current = providers.find((provider) => provider.id === providerID)
 
   return (
     <View style={[styles.container, isDark && styles.containerDark]}>
-      <Stack.Screen options={{ title: "Phone mode" }} />
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
         <Text style={[styles.heading, isDark && styles.textDark]}>Chat with no computer</Text>
         <Text style={[styles.sub, isDark && styles.hintDark]}>
@@ -240,29 +236,6 @@ export default function PhoneModeScreen() {
           </>
         ) : null}
 
-        <Text style={[styles.label, styles.spaced, isDark && styles.textDark]}>On this phone</Text>
-        {sessions.length === 0 ? (
-          <Text style={[styles.empty, isDark && styles.hintDark]}>No phone sessions yet.</Text>
-        ) : (
-          sessions.map((session) => (
-            <TouchableOpacity
-              key={session.id}
-              style={[styles.sessionRow, isDark && styles.sessionRowDark]}
-              onPress={() => router.push({ pathname: "/phone/[id]", params: { id: session.id } })}
-              onLongPress={() => remove(session)}
-            >
-              <View style={styles.sessionText}>
-                <Text style={[styles.sessionTitle, isDark && styles.textDark]} numberOfLines={1}>
-                  {session.title}
-                </Text>
-                <Text style={[styles.sessionMeta, isDark && styles.hintDark]}>
-                  {session.version} · {new Date(session.time.updated).toLocaleString()}
-                </Text>
-              </View>
-              <Ionicons name="chevron-forward" size={18} color={colors.muted} />
-            </TouchableOpacity>
-          ))
-        )}
       </ScrollView>
     </View>
   )

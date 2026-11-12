@@ -32,6 +32,10 @@ import { useTheme, type Theme } from "../../src/theme"
 import { UpdateBanner } from "../../src/components/UpdateBanner"
 import { nameOf } from "../../src/lib/path-utils"
 import { SETUP_GUIDE_URL } from "../../src/lib/links"
+import { useMode } from "../../src/stores/mode"
+import AsyncStorage from "@react-native-async-storage/async-storage"
+
+const LAST_PROVIDER_KEY = "devmote_last_provider"
 
 function formatTime(timestamp: number, t: (key: string, opts?: Record<string, unknown>) => string): string {
   const date = new Date(timestamp)
@@ -227,13 +231,21 @@ export default function SessionsScreen() {
   // Phone sessions live on the device, so they are loaded from their own engine
   // and merged into the same list. `directory` is only a display grouping here;
   // the phone store keeps its own model of where a session lives.
-  const allSessions = useMemo(
-    () =>
-      [...sessions, ...phoneSessions.map((session) => ({ ...session, directory: "On this phone" }))].sort(
-        (left, right) => right.time.updated - left.time.updated,
-      ),
-    [sessions, phoneSessions],
-  )
+  //
+  // The list is scoped to the mode chosen on Home: Remote shows the computer's
+  // sessions, Cloud shows phone chats on hosted providers, Local shows phone
+  // chats on LAN providers.
+  const mode = useMode((state) => state.mode)
+  const isRemote = mode === "remote"
+
+  const allSessions = useMemo(() => {
+    if (isRemote) return [...sessions].sort((left, right) => right.time.updated - left.time.updated)
+    const wantsCloud = mode === "cloud"
+    return phoneSessions
+      .filter((session) => (session.providerID === "opencode-go") === wantsCloud)
+      .map((session) => ({ ...session, directory: "On this device" }))
+      .sort((left, right) => right.time.updated - left.time.updated)
+  }, [isRemote, mode, sessions, phoneSessions])
 
   // Flatten sessions into header+item rows. Skip headers entirely when
   // everything lives in one directory — a lone header adds noise, not clarity.
@@ -369,6 +381,10 @@ export default function SessionsScreen() {
       } else {
         Alert.alert(t("common.error"), t("sessionsList.alerts.createFailedMessage"))
       }
+    } catch (err) {
+      // A dead server used to leave the + button looking inert: createSession
+      // rejected and nothing surfaced. Say what happened instead.
+      Alert.alert(t("common.error"), err instanceof Error ? err.message : t("sessionsList.alerts.createFailedMessage"))
     } finally {
       creatingInFlight.current = false
     }
@@ -460,18 +476,48 @@ export default function SessionsScreen() {
     }
   }, [])
 
+  const [creatingPhone, setCreatingPhone] = useState(false)
+
+  const onCreatePhoneSession = async () => {
+    if (creatingPhone) return
+    setCreatingPhone(true)
+    try {
+      const providerID =
+        mode === "cloud" ? "opencode-go" : ((await AsyncStorage.getItem(LAST_PROVIDER_KEY)) ?? "ollama")
+      const modelID = await AsyncStorage.getItem(`devmote_last_model_${providerID}`)
+      if (!modelID) {
+        router.push("/(tabs)/provider")
+        return
+      }
+      const session = await phoneEngine.createSession({ title: "New chat", providerID, modelID })
+      setPhoneSessions(await phoneEngine.listSessions())
+      router.push({ pathname: "/phone/[id]", params: { id: session.id } })
+    } catch (err) {
+      Alert.alert(t("common.error"), err instanceof Error ? err.message : String(err))
+    } finally {
+      setCreatingPhone(false)
+    }
+  }
+
   const onFabPress = () => {
-    // Quick create in current project
-    onCreateSession()
+    if (isRemote) {
+      void onCreateSession()
+      return
+    }
+    void onCreatePhoneSession()
   }
 
   const onFabLongPress = () => {
+    if (!isRemote) {
+      router.push("/(tabs)/provider")
+      return
+    }
     // Show modal with more options
     setCustomDir("")
     setShowNewSession(true)
   }
 
-  if (!activeConnection) {
+  if (isRemote && !activeConnection) {
     return (
       <View style={[styles.emptyContainer, isDark && styles.containerDark]}>
         <Ionicons name="server-outline" size={64} color={colors.muted} />
@@ -515,18 +561,18 @@ export default function SessionsScreen() {
   // credentials (401/403) — no amount of pull-to-refresh fixes that, so
   // point the user straight at the fix instead of a spinner that never
   // resolves (issue #76).
-  if (authError) {
+  if (isRemote && authError) {
     return (
       <View style={[styles.emptyContainer, isDark && styles.containerDark]}>
         <Ionicons name="lock-closed-outline" size={64} color={colors.muted} />
         <Text style={[styles.emptyTitle, isDark && styles.textDark]}>{t("sessionsList.empty.authFailedTitle")}</Text>
         <Text style={[styles.emptySubtitle, isDark && styles.metaDark]}>
-          {t("sessionsList.empty.authFailedSubtitle", { name: activeConnection.name })}
+          {t("sessionsList.empty.authFailedSubtitle", { name: activeConnection?.name ?? "" })}
         </Text>
         <View style={styles.authErrorButtonRow}>
           <TouchableOpacity
             style={[styles.addButton, isDark && styles.addButtonDark]}
-            onPress={() => router.push(`/connection/${activeConnection.id}`)}
+            onPress={() => router.push(`/connection/${activeConnection?.id ?? ""}`)}
             testID="fix-connection-button"
           >
             <Text style={[styles.addButtonText, isDark && styles.addButtonTextDark]}>
@@ -554,7 +600,9 @@ export default function SessionsScreen() {
 
   return (
     <View style={[styles.container, isDark && styles.containerDark]}>
-      {/* Connection indicator — tap to switch project */}
+      {/* Connection indicator — remote mode only; on-device modes have no server
+          to switch and the bar would just be noise. */}
+      {isRemote && activeConnection ? (
       <TouchableOpacity
         style={[styles.connectionBar, isDark && styles.connectionBarDark]}
         onPress={() => dirSheetRef.current?.expand()}
@@ -578,6 +626,7 @@ export default function SessionsScreen() {
         </View>
         <Ionicons name="swap-horizontal-outline" size={16} color={colors.muted} />
       </TouchableOpacity>
+      ) : null}
 
       {error && (
         <View style={styles.errorBar}>
@@ -616,7 +665,7 @@ export default function SessionsScreen() {
             </View>
           )
         }
-        contentContainerStyle={sessions.length === 0 ? styles.emptyContent : undefined}
+        contentContainerStyle={allSessions.length === 0 ? styles.emptyContent : undefined}
       />
 
       {/* FAB to create new session */}
@@ -625,9 +674,14 @@ export default function SessionsScreen() {
         onPress={onFabPress}
         onLongPress={onFabLongPress}
         delayLongPress={500}
+        disabled={creatingPhone}
         testID="new-session-fab"
       >
-        <Ionicons name="add" size={28} color={colors.onAccent} />
+        {creatingPhone ? (
+          <ActivityIndicator size="small" color={colors.onAccent} />
+        ) : (
+          <Ionicons name="add" size={28} color={colors.onAccent} />
+        )}
       </TouchableOpacity>
 
       {/* New Session Info Modal */}

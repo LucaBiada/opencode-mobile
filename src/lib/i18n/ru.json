@@ -9,6 +9,31 @@
     "close": "Закрыть",
     "shareReport": "Поделиться отчётом"
   },
+  "home": {
+    "heading": "Где вы работаете?",
+    "subheading": "Выберите режим. Чаты и подключения относятся только к нему, настройки — ко всему приложению.",
+    "configure": "Настроить",
+    "remote": {
+      "title": "Удалённо",
+      "subtitle": "Управляйте агентом на компьютере"
+    },
+    "cloud": {
+      "title": "Облако",
+      "subtitle": "Облачные модели, без компьютера"
+    },
+    "local": {
+      "title": "Локальная сеть",
+      "subtitle": "Сервер моделей в вашей сети"
+    },
+    "status": {
+      "connected": "Подключено к {{name}}",
+      "noComputer": "Компьютер не подключён",
+      "goReady": "Ключ OpenCode Go сохранён",
+      "keyMissing": "Добавьте API-ключ",
+      "providerReady": "{{provider}} настроен",
+      "notConfigured": "Не настроено"
+    }
+  },
   "settings": {
     "sections": {
       "security": "Безопасность",
@@ -232,7 +257,8 @@
     }
   },
   "nav": {
-    "sessionsTab": "Сессии",
+    "providerTab": "Провайдер",
+      "sessionsTab": "Сессии",
     "connectionsTab": "Подключения",
     "settingsTab": "Настройки",
     "addConnectionTitle": "Добавить подключение",

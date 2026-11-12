@@ -12,6 +12,7 @@ import { useConnections } from "../src/stores/connections"
 import { useEvents } from "../src/stores/events"
 import { useCatalog } from "../src/stores/catalog"
 import { useSettings } from "../src/stores/settings"
+import { useMode } from "../src/stores/mode"
 import { AuthGate } from "../src/components/AuthGate"
 import { ErrorBoundary } from "../src/components/ErrorBoundary"
 import { TelemetryConsentModal } from "../src/components/TelemetryConsentModal"
@@ -48,6 +49,7 @@ function RootLayout() {
     initAuth()
     loadConnections()
     useSettings.getState().load()
+    useMode.getState().load()
 
     // Connect notification preferences to the notification module
     notifications.configure(() => useSettings.getState().notifications)
@@ -150,7 +152,10 @@ function RootLayout() {
     }
   }, [client])
 
-  const isLoading = authLoading || connectionsLoading || consentState === "loading"
+  // Only the biometric gate may hold first paint. Connections load over the
+  // network and telemetry consent reads SecureStore — neither should keep the
+  // user staring at a spinner, and both can land after the UI is up.
+  const isLoading = authLoading
 
   if (isLoading) {
     return (
@@ -188,6 +193,7 @@ function RootLayout() {
                 },
               }}
             >
+              <Stack.Screen name="index" options={{ headerShown: false }} />
               <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
               <Stack.Screen
                 name="session/[id]"

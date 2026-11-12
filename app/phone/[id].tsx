@@ -14,10 +14,12 @@ import {
 import { router, Stack, useLocalSearchParams } from "expo-router"
 import { Ionicons } from "@expo/vector-icons"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
+import { useTranslation } from "react-i18next"
 
 import { MessageBubble } from "../../src/components/chat/MessageBubble"
 import { useTheme, type Theme } from "../../src/theme"
 import { phoneEngine } from "../../src/engines/phone/engine"
+import { useMode } from "../../src/stores/mode"
 import type { Event, Message, Part } from "../../src/lib/sdk"
 
 function shortModel(modelID: string): string {
@@ -30,6 +32,8 @@ export default function PhoneChatScreen() {
   const insets = useSafeAreaInsets()
   const colors = useTheme()
   const styles = useMemo(() => createStyles(colors), [colors])
+  const { t } = useTranslation()
+  const mode = useMode((state) => state.mode)
 
   const [messages, setMessages] = useState<Message[]>([])
   const [parts, setParts] = useState<Record<string, Part[]>>({})
@@ -179,7 +183,7 @@ export default function PhoneChatScreen() {
                 {title}
               </Text>
               <Text style={styles.subtitle} numberOfLines={1}>
-                Phone mode
+                {mode === "cloud" ? t("home.cloud.title") : t("home.local.title")}
               </Text>
             </View>
           ),

@@ -1,7 +1,7 @@
 import { tool } from "ai"
 import { z } from "zod"
 
-import { readText, findFiles, grep, resolveDirectory, walk, writeText } from "./workspace"
+import { readText, findFiles, grep, resolveDirectory, resolveFile, walk, writeText } from "./workspace"
 
 // Approval gate supplied by the engine. Tools that mutate the workspace call it
 // before doing anything; the engine turns it into a permission card in the chat.
@@ -18,8 +18,25 @@ function clip(value: string, max = MAX_TOOL_BYTES): string {
   return `${value.slice(0, max)}\n… truncated (${value.length - max} more characters)`
 }
 
-export function createPhoneTools(sessionID: string, requestApproval: ApprovalRequest) {
+export function createPhoneTools(
+  sessionID: string,
+  requestApproval: ApprovalRequest,
+  openFile?: (path: string) => void,
+) {
   return {
+    open_file: tool({
+      description:
+        "Show a workspace file to the user in the app's preview screen. Call this whenever the user asks to open, show, view or preview a file (for example an HTML page or an image you created).",
+      inputSchema: z.object({
+        filePath: z.string().describe("Workspace-relative path of the file to show"),
+      }),
+      execute: async ({ filePath }) => {
+        const file = resolveFile(sessionID, filePath)
+        if (!file.exists) throw new Error(`No such file: ${filePath} (use glob to find the exact path)`)
+        openFile?.(filePath)
+        return `Opened ${filePath} in the preview screen.`
+      },
+    }),
     read: tool({
       description: "Read a text file from the workspace. Returns numbered lines.",
       inputSchema: z.object({

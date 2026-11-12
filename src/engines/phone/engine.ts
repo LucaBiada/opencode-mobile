@@ -28,6 +28,7 @@ const SYSTEM_PROMPT = [
   "You can read, search, create and edit files inside a dedicated workspace using your tools.",
   "You cannot run shell commands, install packages, build or test code, and you have no network tools.",
   "Ask for approval-worthy changes normally: writes and edits are shown to the user for approval before they happen.",
+  "You can open a file in the app's preview with the open_file tool; do that whenever the user asks to open, show, view or preview a file they mention or that you just created. If you are unsure of the exact path, use glob first.",
   "If a task needs execution, make the change you can and tell the user what to run.",
   "Answer in the language the user writes in. Prefer short, concrete answers with code blocks where useful.",
 ].join(" ")
@@ -196,7 +197,11 @@ export function createPhoneEngine(): Engine {
           model: providerModel({ provider, modelID, sessionID, apiKey }),
           system: provider.tools ? SYSTEM_PROMPT : CHAT_ONLY_PROMPT,
           messages: history,
-          tools: provider.tools ? createPhoneTools(sessionID, approvalGate(sessionID)) : undefined,
+          tools: provider.tools
+        ? createPhoneTools(sessionID, approvalGate(sessionID), (path) =>
+            emit({ type: "phone.open_file", properties: { sessionID, path } } as unknown as Event),
+          )
+        : undefined,
           abortSignal: controller.signal,
           maxRetries: 1,
           stopWhen: stepCountIs(provider.tools ? MAX_STEPS : 1),

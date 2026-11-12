@@ -109,6 +109,14 @@ export default function PhoneChatScreen() {
           })
           continue
         }
+        // The model decided to show a file (e.g. "open the html we just made").
+        if ((event.type as string) === "phone.open_file") {
+          const path = payload.path
+          if (typeof path === "string" && path) {
+            router.push({ pathname: "/preview", params: { session: id, path } })
+          }
+          continue
+        }
         if (event.type === "session.idle") {
           setSending(false)
           setApproval(null)
@@ -159,6 +167,7 @@ export default function PhoneChatScreen() {
 
   const openMenu = () => {
     Alert.alert(title, "Phone chat", [
+      { text: t("files.title"), onPress: () => router.push({ pathname: "/files", params: { session: id } }) },
       { text: "Cancel", style: "cancel" },
       {
         text: "Delete chat",

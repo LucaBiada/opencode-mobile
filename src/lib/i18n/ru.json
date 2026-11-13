@@ -9,6 +9,10 @@
     "close": "Закрыть",
     "shareReport": "Поделиться отчётом"
   },
+  "phone": {
+    "modelPickerError": "Не удалось загрузить модели",
+    "configure": "Настроить"
+  },
   "files": {
     "title": "Файлы",
     "previewTitle": "Просмотр",

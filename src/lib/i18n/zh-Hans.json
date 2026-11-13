@@ -9,6 +9,10 @@
     "close": "关闭",
     "shareReport": "分享报告"
   },
+  "phone": {
+    "modelPickerError": "无法加载模型",
+    "configure": "配置"
+  },
   "files": {
     "title": "文件",
     "previewTitle": "预览",

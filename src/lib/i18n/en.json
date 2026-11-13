@@ -9,6 +9,10 @@
     "close": "Close",
     "shareReport": "Share report"
   },
+  "phone": {
+    "modelPickerError": "Could not load models",
+    "configure": "Configure"
+  },
   "files": {
     "title": "Files",
     "previewTitle": "Preview",

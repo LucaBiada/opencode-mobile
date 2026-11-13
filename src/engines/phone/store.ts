@@ -269,6 +269,11 @@ export async function seedProviders(presets: Provider[]): Promise<void> {
   for (const preset of presets) await upsertProvider(preset)
 }
 
+export async function setPhoneSessionModel(sessionID: string, modelID: string): Promise<void> {
+  const db = await open()
+  await db.runAsync("UPDATE phone_sessions SET model = ?, updated_at = ? WHERE id = ?", modelID, Date.now(), sessionID)
+}
+
 export async function touchPhoneSession(sessionID: string, patch: { title?: string; updated?: number } = {}): Promise<void> {
   const db = await open()
   if (patch.title !== undefined) {

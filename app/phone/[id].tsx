@@ -15,10 +15,17 @@ import { router, Stack, useLocalSearchParams } from "expo-router"
 import { Ionicons } from "@expo/vector-icons"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
 import { useTranslation } from "react-i18next"
+import AsyncStorage from "@react-native-async-storage/async-storage"
+import BottomSheet from "@gorhom/bottom-sheet"
 
 import { MessageBubble } from "../../src/components/chat/MessageBubble"
-import { useTheme, type Theme } from "../../src/theme"
+import { ModelPicker } from "../../src/components/chat/ModelPicker"
+import { useTheme, useIsDark, type Theme } from "../../src/theme"
 import { phoneEngine } from "../../src/engines/phone/engine"
+import { getPhoneSessionConfig, listProviders, setPhoneSessionModel } from "../../src/engines/phone/store"
+import { getProviderKey } from "../../src/lib/phone/key"
+import { loadProviderModels, type GoModel } from "../../src/lib/phone/models"
+import { PRESETS, type Provider } from "../../src/lib/phone/providers"
 import { useMode } from "../../src/stores/mode"
 import type { Event, Message, Part } from "../../src/lib/sdk"
 
@@ -34,6 +41,11 @@ export default function PhoneChatScreen() {
   const styles = useMemo(() => createStyles(colors), [colors])
   const { t } = useTranslation()
   const mode = useMode((state) => state.mode)
+  const isDark = useIsDark()
+  const pickerRef = useRef<BottomSheet>(null)
+  const [provider, setProvider] = useState<Provider | null>(null)
+  const [models, setModels] = useState<GoModel[]>([])
+  const [modelsLoading, setModelsLoading] = useState(false)
 
   const [messages, setMessages] = useState<Message[]>([])
   const [parts, setParts] = useState<Record<string, Part[]>>({})
@@ -70,6 +82,69 @@ export default function PhoneChatScreen() {
       return { ...current, [part.messageID]: next }
     })
   }, [])
+
+  // The composer's model chip is a selector: load the provider behind this
+  // session and its model list so changing models does not need a detour to the
+  // provider tab.
+  useEffect(() => {
+    if (!id) return
+    let active = true
+    void (async () => {
+      const config = await getPhoneSessionConfig(id)
+      const rows = await listProviders().catch(() => [])
+      const match =
+        rows.find((row) => row.id === config.providerID) ??
+        PRESETS.find((preset) => preset.id === config.providerID) ??
+        null
+      if (!active || !match) return
+      setProvider(match)
+      const key = await getProviderKey(match.id)
+      if (match.requiresKey && !key) return
+      const list = await loadProviderModels(match, key).catch(() => [])
+      if (active) setModels(list)
+    })()
+    return () => {
+      active = false
+    }
+  }, [id])
+
+  const openModelPicker = useCallback(async () => {
+    if (!provider) return
+    let list = models
+    if (list.length === 0) {
+      setModelsLoading(true)
+      try {
+        const key = await getProviderKey(provider.id)
+        list = await loadProviderModels(provider, key)
+        setModels(list)
+      } catch (err) {
+        Alert.alert(
+          t("phone.modelPickerError"),
+          err instanceof Error ? err.message : String(err),
+          [
+            { text: t("common.cancel"), style: "cancel" },
+            { text: t("phone.configure"), onPress: () => router.push("/(tabs)/provider") },
+          ],
+        )
+        return
+      } finally {
+        setModelsLoading(false)
+      }
+    }
+    if (list.length > 0) pickerRef.current?.expand()
+  }, [models, provider, t])
+
+  const chooseModel = useCallback(
+    (nextProviderID: string, nextModelID: string) => {
+      setModelID(nextModelID)
+      if (id) {
+        void setPhoneSessionModel(id, nextModelID)
+        void AsyncStorage.setItem(`devmote_last_model_${nextProviderID}`, nextModelID)
+      }
+      pickerRef.current?.close()
+    },
+    [id],
+  )
 
   useEffect(() => {
     if (!id) return
@@ -288,11 +363,17 @@ export default function PhoneChatScreen() {
             <View style={[styles.roundButton, styles.roundDisabled]}>
               <Ionicons name="add" size={22} color={colors.muted} />
             </View>
-            <View style={styles.modelChip}>
+            <TouchableOpacity
+              style={styles.modelChip}
+              onPress={() => void openModelPicker()}
+              testID="phone-model-chip"
+              activeOpacity={0.7}
+            >
               <Text style={styles.modelChipText} numberOfLines={1}>
-                {modelID ? shortModel(modelID) : "Model"}
+                {modelsLoading ? "…" : modelID ? shortModel(modelID) : "Model"}
               </Text>
-            </View>
+              <Ionicons name="chevron-down" size={14} color={colors.muted} />
+            </TouchableOpacity>
             <View style={{ flex: 1 }} />
             <View style={[styles.roundButton, styles.roundDisabled]}>
               <Ionicons name="mic-outline" size={18} color={colors.muted} />
@@ -308,6 +389,14 @@ export default function PhoneChatScreen() {
           </View>
         </View>
       </View>
+
+      <ModelPicker
+        sheetRef={pickerRef}
+        providers={provider ? [{ id: provider.id, name: provider.name, models }] : []}
+        selected={provider ? { providerID: provider.id, modelID } : null}
+        isDark={isDark}
+        onSelect={chooseModel}
+      />
     </KeyboardAvoidingView>
   )
 }
@@ -372,6 +461,8 @@ function createStyles(colors: Theme) {
   },
   roundDisabled: { opacity: 0.45 },
   modelChip: {
+    flexDirection: "row",
+    gap: 4,
     height: 38,
     borderRadius: 19,
     paddingHorizontal: 14,
